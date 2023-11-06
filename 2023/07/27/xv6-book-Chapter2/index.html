@@ -1,0 +1,838 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=auto>
+
+
+
+<head>
+  <meta charset="UTF-8">
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/fluid.png">
+  <link rel="icon" href="/img/fluid.png">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="author" content="Cygnus">
+  <meta name="keywords" content="">
+  
+    <meta name="description" content="Chapter2 操作系统组织结构Chapter 1中主要提到了操作系统提供的常见接口（系统调用），并且利用这些接口实现了一些可以在shell窗口运行的程序，但是并没有进入到内核中去。 一个操作系统最核心的功能就是给用户提供使用硬件的环境，可以井井有条的运行多个程序。这个过程涉及到了几个问题：  操作系统如何为进程分配资源？（资源分配） 操作系统如何确保所有进程都能执行？即使进程数量大于CPU数量">
+<meta property="og:type" content="article">
+<meta property="og:title" content="xv6-book Chapter2">
+<meta property="og:url" content="http://example.com/2023/07/27/xv6-book-Chapter2/index.html">
+<meta property="og:site_name" content="Cygnus的博客">
+<meta property="og:description" content="Chapter2 操作系统组织结构Chapter 1中主要提到了操作系统提供的常见接口（系统调用），并且利用这些接口实现了一些可以在shell窗口运行的程序，但是并没有进入到内核中去。 一个操作系统最核心的功能就是给用户提供使用硬件的环境，可以井井有条的运行多个程序。这个过程涉及到了几个问题：  操作系统如何为进程分配资源？（资源分配） 操作系统如何确保所有进程都能执行？即使进程数量大于CPU数量">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://example.com/2023/07/27/xv6-book-Chapter2/20230718182913.png">
+<meta property="og:image" content="http://example.com/2023/07/27/xv6-book-Chapter2/20230718183155.png">
+<meta property="og:image" content="http://example.com/2023/07/27/xv6-book-Chapter2/20230727122632.png">
+<meta property="og:image" content="http://example.com/2023/07/27/xv6-book-Chapter2/20230727125258.png">
+<meta property="og:image" content="http://example.com/2023/07/27/xv6-book-Chapter2/20230816182438.png">
+<meta property="article:published_time" content="2023-07-27T12:10:35.000Z">
+<meta property="article:modified_time" content="2023-11-06T12:15:56.379Z">
+<meta property="article:author" content="Cygnus">
+<meta property="article:tag" content="xv6">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="http://example.com/2023/07/27/xv6-book-Chapter2/20230718182913.png">
+  
+  
+  
+  <title>xv6-book Chapter2 - Cygnus的博客</title>
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
+
+
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/github-markdown-css/4.0.0/github-markdown.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/hint.css/2.7.0/hint.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.css" />
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+<!-- Do not modify the link that theme dependent icons -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1749284_hj8rtnfg7um.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1736178_lbnruvf0jn.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+
+  <link id="highlight-css" rel="stylesheet" href="/css/highlight.css" />
+  
+    <link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css" />
+  
+
+
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    Fluid.ctx = Object.assign({}, Fluid.ctx)
+    var CONFIG = {"hostname":"example.com","root":"/","version":"1.9.5","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"follow_dnt":true,"baidu":null,"google":{"measurement_id":null},"tencent":{"sid":null,"cid":null},"woyaola":null,"cnzz":null,"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false}},"search_path":"/local-search.xml","include_content_in_search":true};
+
+    if (CONFIG.web_analytics.follow_dnt) {
+      var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
+      Fluid.ctx.dnt = dntVal && (dntVal.startsWith('1') || dntVal.startsWith('yes') || dntVal.startsWith('on'));
+    }
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+  
+
+
+  
+<meta name="generator" content="Hexo 7.0.0"></head>
+
+
+<body>
+  
+
+  <header>
+    
+
+<div class="header-inner" style="height: 70vh;">
+  <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>Fluid</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/">
+                <i class="iconfont icon-home-fill"></i>
+                <span>首页</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/">
+                <i class="iconfont icon-archive-fill"></i>
+                <span>归档</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/">
+                <i class="iconfont icon-category-fill"></i>
+                <span>分类</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/">
+                <i class="iconfont icon-tags-fill"></i>
+                <span>标签</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/">
+                <i class="iconfont icon-user-fill"></i>
+                <span>关于</span>
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <i class="iconfont icon-search"></i>
+            </a>
+          </li>
+          
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">
+              <i class="iconfont icon-dark" id="color-toggle-icon"></i>
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+  
+
+<div id="banner" class="banner" parallax=true
+     style="background: url('/img/default.png') no-repeat center center; background-size: cover;">
+  <div class="full-bg-img">
+    <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+      <div class="banner-text text-center fade-in-up">
+        <div class="h2">
+          
+            <span id="subtitle" data-typed-text="xv6-book Chapter2"></span>
+          
+        </div>
+
+        
+          
+  <div class="mt-3">
+    
+    
+      <span class="post-meta">
+        <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+        <time datetime="2023-07-27 20:10" pubdate>
+          2023年7月27日 晚上
+        </time>
+      </span>
+    
+  </div>
+
+  <div class="mt-1">
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-chart"></i>
+        
+          22k 字
+        
+      </span>
+    
+
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-clock-fill"></i>
+        
+        
+        
+          188 分钟
+        
+      </span>
+    
+
+    
+    
+  </div>
+
+
+        
+      </div>
+
+      
+    </div>
+  </div>
+</div>
+
+</div>
+
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+
+    </div>
+
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div id="board">
+          <article class="post-content mx-auto">
+            <h1 id="seo-header">xv6-book Chapter2</h1>
+            
+            
+              <div class="markdown-body">
+                
+                <h1 id="Chapter2-操作系统组织结构"><a href="#Chapter2-操作系统组织结构" class="headerlink" title="Chapter2 操作系统组织结构"></a>Chapter2 操作系统组织结构</h1><p>Chapter 1中主要提到了操作系统提供的常见接口（系统调用），并且利用这些接口实现了一些可以在shell窗口运行的程序，但是并没有进入到内核中去。</p>
+<p>一个操作系统最核心的功能就是给用户提供使用硬件的环境，可以井井有条的运行多个程序。这个过程涉及到了几个问题：</p>
+<ol>
+<li>操作系统如何为进程分配资源？（资源分配）</li>
+<li>操作系统如何确保所有进程都能执行？即使进程数量大于CPU数量（进程调度），</li>
+<li>一个进程发生故障怎样才能不影响其他进程？（隔离）</li>
+<li>进程之间如何拥有安全的交互渠道?（管道）<br>总的来说，上面的问题可以展现出人们对操作系统的三个核心需求：多路复用，隔离和交互</li>
+</ol>
+<p>Chapter 2的主要目标就是：</p>
+<ol>
+<li>理解如何组织操作系统（单片内核）以实现这三个核心需求</li>
+<li>弄清楚xv6系统启动时运行的第一个进程（xv6系统的隔离单元）</li>
+</ol>
+<p>注意：Xv6运行在多核RISC-V微处理器上，它的许多底层功能（例如进程实现）是针对于RISC-V的。RISC-V是64位CPU，而xv6是用“LP64”C语言编写的，这意味着C编程语言中的long数据类型和指针大小是64位，而int是32位。本书假设读者已经在某些架构上做了一些机器级编程，并将介绍risc - v特定的思想</p>
+<h2 id="操作系统抽象硬件资源的意义"><a href="#操作系统抽象硬件资源的意义" class="headerlink" title="操作系统抽象硬件资源的意义"></a>操作系统抽象硬件资源的意义</h2><p>为什么要有操作系统？能不能让应用程序直接和硬件发生交互？<br>答案是肯定的，在这种情况下，每个应用程序都有自己定制的库，可以根据硬件的特性，以最适合的方式组织应用程序的代码设计，例如嵌入式设备的操作系统</p>
+<p>但是这样做的缺点是：如果有多个应用程序同时执行（通用PC需要同时执行很多程序），每个程序必须定期的放弃自己目前占用的CPU，使得其他程序可以运行。这个过程要求程序相互信任且不会发生错误，在普遍的计算机设备上显然是不现实的</p>
+<p>因此在大多数情况下，将应用程序隔离，禁止直接访问敏感的硬件资源，并将资源抽象成一种服务，是更好的方案</p>
+<p>举个例子，假如有甲乙丙丁四个人去办公室盖公章，操作系统就像一个公章管理者，提供一种叫做”盖公章”的服务，甲乙丙丁四人只需要请求这个服务，操作系统就会将公章交给他使用并进行监督，一旦使用时间到了就交给下一个人。如果没有操作系统，那么每个人都可以来争抢公章并使用，一旦甲抢到了公章并且长时间使用不归还，那么其他人就一直无法完成盖公章的任务</p>
+<p>再从计算机的角度考虑，Unix应用程序仅通过文件系统的open、write、read和close四个系统调用与存储交互，具体的磁盘管理由操作系统来完成</p>
+<p>再比如，Unix在进程之间切换CPU，即使A程序陷入死循环，不用担心其他程序无法运行。看起来A一直死循环占用CPU，但其实每过一定时间，A会被迫暂停运行，由其他程序占用CPU</p>
+<p>总的来说，使用操作系统抽象硬件资源的好处和API编程时”封装”的好处类似（方便好用，隐藏内部复杂的实现细节，可移植性，可维护性等等）</p>
+<h2 id="CPU对进程隔离的硬件级别支持"><a href="#CPU对进程隔离的硬件级别支持" class="headerlink" title="CPU对进程隔离的硬件级别支持"></a>CPU对进程隔离的硬件级别支持</h2><p>我们需要一个操作系统来为应用程序提供底层硬件的抽象服务，而系统调用接口就是操作系统具体提供服务的方式，这既为程序员提供了便利，又提供了强隔离的可能性。</p>
+<p>为了达成这一点，操作系统必须使得应用程序不能访问其他进程的内存以及操作系统的数据结构和指令，即不同的进程之间需要相互隔离。<strong>CPU的特权等级机制为这一要求的实现提供了硬件级别的支持</strong>（通过设置一个模式位来实现）</p>
+<p>例如，RISC-V有三种执行CPU指令的模式：User级中运行用户程序；Supervisor级中运行操作系统内核（和设备驱动）；Machine级中运行BootLoader和其它固件。 正常情况下，处理器一直在某个特权等级下运行，除非进入trap（诸如软硬件中断、异常等）才有可能发生特权等级的转换</p>
+<p>对于现代操作系统（如Linux、Windows等）而已，用户程序都运行在用户态，当它们需要切换到内核态以获得更高权限时，需要向操作系统申请；而操作系统内核和设备驱动程序则默认就运行在内核态。每个用户线程也拥有两个栈，一个是用户态栈，一个是内核态栈，分别当处于用户态和内核态时使用。操作系统的用户态和内核态对应到处理器的硬件层面上，即为不同的特权等级。在RISC-V中，用户态一般对应User Mode，而内核态一般对应Supervisor Mode。</p>
+<p>一般来说用户程序一直运行在用户态中，只有当发生中断才会转到内核态中<br>中断可以分为三类：</p>
+<ol>
+<li>系统调用（又称陷入），在程序中使用系统调用引起；</li>
+<li>异常，当应用程序运行时出现异常时（比如最常见的缺页异常）也会切换到内核态进行处理；</li>
+<li>外部中断，由CPU外部引起的中断（或者说与CPU执行指令无关的事件），如I&#x2F;O中断、时钟中断</li>
+</ol>
+<h2 id="单片内核与微内核"><a href="#单片内核与微内核" class="headerlink" title="单片内核与微内核"></a>单片内核与微内核</h2><p>我们已经知道了操作系统的一些重要指令只有在Supervisor模式下才能执行，那么究竟操作系统的哪些指令应该放在Supervisor模式运行？一种可能性是整个操作系统驻留在内核中，因此所有系统调用的实现都以Supervisor模式运行，这种组织方式被称为<strong>单片内核</strong>。整个操作系统以完全硬件特权运行。</p>
+<p>这种组织使得操作系统的不同部分更容易协作，例如一个操作系统可能有一个缓冲缓存，它可以被文件系统和虚拟内存系统共享；缺点是操作系统不同部分之间的接口通常很复杂，而且内核中出现错误时会导致所有应用程序崩溃（例如windows蓝屏），计算机必须重新启动。</p>
+<p>为了减少在内核中出错的风险，操作系统设计者可以尽量减少在管理模式下运行的操作系统代码的数量，并在用户模式下执行大部分操作系统。这种内核组织称为<strong>微内核</strong>，如下图所示。<br><img src="20230718182913.png" srcset="/img/loading.gif" lazyload alt="微内核"></p>
+<p>文件系统作为用户级进程运行。作为进程运行的操作系统服务称为服务器。为了允许应用程序与文件服务器交互，内核提供了一个进程间通信机制，将消息从一个用户模式进程发送到另一个用户模式进程。例如，如果像shell这样的应用程序想要读取或写入文件，它会向文件服务器发送消息并等待响应，内核中只保留最基本的功能（进程管理、内存管理和通信）</p>
+<figure class="highlight markdown"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><code class="hljs markdown">微内核和单片内核（宏内核）的区别：<br>微内核：将非基本的操作系统功能从内核移到用户态，内核中只保留最基本的功能（进程管理、内存管理和通信）<br>缺点：效率低，需要频繁地在用户态和内核态之间切换<br>优点：<br><span class="hljs-bullet">1.</span> 便于扩展操作系统，新服务可以在用户空间增加，几乎不需要修改内核。<br><span class="hljs-bullet">2.</span> 精简内核，代码量减少，更容易实现，更好debug。<br><span class="hljs-bullet">3.</span> 微内核相比于宏内核更加稳定，因为大部分功能外移，内核中可能出现的错误也相应地减少。<br><br>宏内核：将操作系统的所有功能最为一个紧密的整体都放在内核中。<br>缺点：不易扩展，内核出错概率更大，debug难<br>优点：执行效率高<br><br>微内核的操作系统有：Window,Minix,Mac等等。<br>宏内核的操作系统有：Unix，Linux等等。<br></code></pre></td></tr></table></figure>
+
+<p>XV6的内核源文件（位于kernel文件目录下）如下图所示，按照模块化的概念，源代码被粗略的分成多个文件，每个文件都注释了各自的作用。defs.h文件下定义了模块间的接口。<br><img src="20230718183155.png" srcset="/img/loading.gif" lazyload alt="xv6源文件结构"></p>
+<p>虽然kernel实现的比较简单，代码量甚至比一般的微内核还少，但因为XV6在内核中实现了<strong>整个操作系统</strong>，内核接口就是操作系统接口，所以XV6属于宏内核</p>
+<h2 id="操作系统的启动过程"><a href="#操作系统的启动过程" class="headerlink" title="操作系统的启动过程"></a>操作系统的启动过程</h2><p>虽然已经明白了理解了操作系统内核的概念，但是它看起来仍然是一个虚无缥缈的东西，只有先弄清楚操作系统宏观意义上是如何启动的，我们才能进一步深入操作系统内部去理解它提供的服务。</p>
+<p>因此我们需要先弄清楚，一台计算机在刚刚通电，<strong>内存为空的情况下</strong>，CPU是如何一步一步将操作系统运行起来的？</p>
+<p>当risc-v计算机通电后，</p>
+<ol>
+<li>首先把CPU所有寄存器初始化（初始值由CPU制造商设置），除了CS寄存器的值设为0xFFFF，其他寄存器的值都为0，这样，根据CS 和 IP的值就可以找到指令的物理地址0xFFFF:0x0000，也就是0xFFFF0。这个地址存放CPU的第一条指令。<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs c">CS的全拼为Code segment，即代码段寄存器，对应于内存中的存放代码的内存区域，用来存放内存代码段区域的入口地址（段基址）<br>IP全称instruction Pointer，指针寄存器，用来记录偏移量<br>CPU在执行指令时，通过CS和IP来确定要执行的下一条指令的内存地址，计算方式一般为CS左移<span class="hljs-number">4</span>位然后加上IP寄存器<br><br>例如：<span class="hljs-number">0xFFFF0</span> = <span class="hljs-number">0xFFFF</span> &lt;&lt; <span class="hljs-number">4</span> + <span class="hljs-number">0x0000</span><br></code></pre></td></tr></table></figure></li>
+<li>CPU开始从寄存器读取并运行指令，0xFFFF0存放的是一条无条件跳转指令JMP，跳转到BIOS的位置。（Bios是一段写在ROM中的程序，内容不会随着断电小时）</li>
+<li>BIOS首先先进行POST（Power－On Self Test，<strong>加电后自检</strong>）。POST主要检测系统中一些关键设备例如内存和显卡等设备是否正常工作；如果硬件出现问题，主板会发出不同含义的蜂鸣，启动中止。如果没有问题，屏幕就会显示出CPU、内存、硬盘等信息。</li>
+<li>之后CPU开始寻找引导扇区，将引导扇区中的指令加载到物理内存 0x7C00处， 修改IP寄存器的值跳转到0x7C00执行指令，从而实现了将 CPU的使用权交给引导扇区中的 Boot 程序。</li>
+<li>引导加载器装载XV6内核到内存0x8000000开始的存储空间中，然后在machine mode下，CPU从kernel&#x2F;entry.s处的_entry处开始执行指令</li>
+</ol>
+<h3 id="entry-S"><a href="#entry-S" class="headerlink" title="entry.S"></a>entry.S</h3><p>进入到entry.S</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><code class="hljs c">        <span class="hljs-meta"># qemu -kernel loads the kernel at 0x80000000  </span><br>        <span class="hljs-meta"># and causes each hart (i.e. CPU) to jump there.  </span><br>        <span class="hljs-meta"># kernel.ld causes the following code to  </span><br>        <span class="hljs-meta"># be placed at 0x80000000.  </span><br>.section .text<br>.global _entry  <br>_entry:  <br>        <span class="hljs-meta"># set up a stack for C.  </span><br>        # stack0 is declared in start.c,  <br>        <span class="hljs-meta"># with a 4096-byte stack per CPU.  </span><br>        <span class="hljs-meta"># sp = stack0 + (hartid * 4096)</span><br><br>		#将stack0读取到SP寄存器<br>        la sp, stack0  <br>		#把<span class="hljs-number">4096</span>这个立即数存放到a0寄存器中<br>        li a0, <span class="hljs-number">1024</span>*<span class="hljs-number">4</span>  <br>        #将CPU的id读取到寄存器a1<br>        csrr a1, mhartid<br>        <span class="hljs-meta">#addi mul add三条运算指令完成sp = stack0 + (hartid * 4096)计算     </span><br>        addi a1, a1, <span class="hljs-number">1</span><br>        mul a0, a0, a1  <br>        add sp, sp, a0  <br>        #指令跳转，jump to <span class="hljs-title function_">start</span><span class="hljs-params">()</span> in start.c  <br>        call start  <br>spin:  <br>        j spin<br></code></pre></td></tr></table></figure>
+
+<p>entry.s其实干了这些事情：为每个CPU分配了栈空间。<br>stack0是一个声明的外部符号，把它作为CPU的上栈的起始地址，然后按照公式，<code>sp = stack0 + (hartid * 4096)</code>，算出每个CPU对应的栈起始地址（sp是堆栈指针寄存器，hartid是CPU id，csr是控制和状态寄存器，csrr是读取csr寄存器的内容，la是地址加载指令，li是立即数加载指令）。</p>
+<p>注意：此时CPU仍然处于machine mode，还没有切换到Supervisor Mode</p>
+<h3 id="start-c"><a href="#start-c" class="headerlink" title="start.c"></a>start.c</h3><p>代码比较长，因此会分成三个部分讲解</p>
+<ul>
+<li><strong>第一部分</strong><br>完成了栈初始化后，CPU接下来要干什么？看看start.c的第一部分代码：<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-meta">#<span class="hljs-keyword">include</span> <span class="hljs-string">&quot;types.h&quot;</span>  </span><br><span class="hljs-meta">#<span class="hljs-keyword">include</span> <span class="hljs-string">&quot;param.h&quot;</span>  </span><br><span class="hljs-meta">#<span class="hljs-keyword">include</span> <span class="hljs-string">&quot;memlayout.h&quot;</span>  </span><br><span class="hljs-meta">#<span class="hljs-keyword">include</span> <span class="hljs-string">&quot;riscv.h&quot;</span>  </span><br><span class="hljs-meta">#<span class="hljs-keyword">include</span> <span class="hljs-string">&quot;defs.h&quot;</span>  </span><br>  <br><span class="hljs-type">void</span> <span class="hljs-title function_">main</span><span class="hljs-params">()</span>;  <br><span class="hljs-type">void</span> <span class="hljs-title function_">timerinit</span><span class="hljs-params">()</span>;  <br>  <br><span class="hljs-comment">// entry.S needs one stack per CPU.  </span><br>__attribute__ ((aligned (<span class="hljs-number">16</span>))) <span class="hljs-type">char</span> stack0[<span class="hljs-number">4096</span> * NCPU];  <br>  <br><span class="hljs-comment">// a scratch area per CPU for machine-mode timer interrupts.  </span><br>uint64 timer_scratch[NCPU][<span class="hljs-number">5</span>];  <br>  <br><span class="hljs-comment">// assembly code in kernelvec.S for machine-mode timer interrupt.  </span><br><span class="hljs-keyword">extern</span> <span class="hljs-type">void</span> <span class="hljs-title function_">timervec</span><span class="hljs-params">()</span>;<br></code></pre></td></tr></table></figure></li>
+</ul>
+<p>__attribute__定义了entry.S中的栈，要求16bit对齐</p>
+<figure class="highlight x86asm"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs x86asm">什么是内存对齐？<br>计算机中内存空间是按照<span class="hljs-built_in">byte</span>划分的，从理论上讲似乎对任何类型的变量的访问可以从任何地址开始，但实际情况是：在访问特定类型变量的时候通常在特定的内存地址访问，这就需要对这些数据在内存中存放的位置有限制，各种类型数据按照一定的规则在空间上排列，而不是顺序的一个接一个的排放，这就是对齐。<br>内存对齐是编译器的管辖范围。表现为：编译器为程序中的每个“数据单元”安排在适当的位置上。<br><br>如果放置数据不考虑对齐，<span class="hljs-number">32</span>位的<span class="hljs-meta">CPU</span>读取一个<span class="hljs-number">4</span>字节的interesting最多需要两次内存访问（左图），如果对齐则只需要一次（如右图）<br></code></pre></td></tr></table></figure>
+<p><img src="20230727122632.png" srcset="/img/loading.gif" lazyload alt="内存对齐"><br>timer_scratch是一组共享变量，用于每个CPU的machine mode定时器中断<br>timervec是timer中断处理函数，在接下来的timerinit中会用到</p>
+<ul>
+<li><strong>第二部分</strong></li>
+</ul>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-comment">// entry.S jumps here in machine mode on stack0.  </span><br><span class="hljs-type">void</span>  <br><span class="hljs-title function_">start</span><span class="hljs-params">()</span>  <br>&#123;  <br>  <span class="hljs-comment">// set M Previous Privilege mode to Supervisor, for mret.  </span><br>  <span class="hljs-type">unsigned</span> <span class="hljs-type">long</span> x = r_mstatus();  <br>  x &amp;= ~MSTATUS_MPP_MASK;  <br>  x |= MSTATUS_MPP_S;  <br>  w_mstatus(x);  <br>  <br>  <span class="hljs-comment">// set M Exception Program Counter to main, for mret.  </span><br>  <span class="hljs-comment">// requires gcc -mcmodel=medany  </span><br>  w_mepc((uint64)main);  <br>  <br>  <span class="hljs-comment">// disable paging for now.  </span><br>  w_satp(<span class="hljs-number">0</span>);  <br>  <br>  <span class="hljs-comment">// delegate all interrupts and exceptions to supervisor mode.  </span><br>  w_medeleg(<span class="hljs-number">0xffff</span>);  <br>  w_mideleg(<span class="hljs-number">0xffff</span>);  <br>  w_sie(r_sie() | SIE_SEIE | SIE_STIE | SIE_SSIE);  <br>  <br>  <span class="hljs-comment">// configure Physical Memory Protection to give supervisor mode  </span><br>  <span class="hljs-comment">// access to all of physical memory.  w_pmpaddr0(0x3fffffffffffffull);  </span><br>  w_pmpcfg0(<span class="hljs-number">0xf</span>);  <br>  <br>  <span class="hljs-comment">// ask for clock interrupts.  </span><br>  timerinit();  <br>  <br>  <span class="hljs-comment">// keep each CPU&#x27;s hartid in its tp register, for cpuid().  </span><br>  <span class="hljs-type">int</span> id = r_mhartid();  <br>  w_tp(id);  <br>  <br>  <span class="hljs-comment">// switch to supervisor mode and jump to main().  </span><br>  <span class="hljs-keyword">asm</span> <span class="hljs-title function_">volatile</span><span class="hljs-params">(<span class="hljs-string">&quot;mret&quot;</span>)</span>;<br></code></pre></td></tr></table></figure>
+
+<p>CPU在entry.S定义了栈，然后从entry.S代码发生跳转，目的地是start.c文件中的start函数，这一段代码出现了很多读写寄存器的函数，下面进行讲解。</p>
+<figure class="highlight dos"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs dos">注意：<span class="hljs-built_in">start</span>.c代码不像其他程序有main入口，因此<span class="hljs-built_in">start</span>不会像一个调用一样返回(没有returning)。由于它处于machine <span class="hljs-built_in">mode</span>下，因此其实是通过操作寄存器将这些事情设置的像一个正常执行的普通调用一样。<br></code></pre></td></tr></table></figure>
+
+<p>无论何时，一个 RISC-V 硬件线程（hart）总是会运行在某一个特权级，而这个信息则是通过两个二进制位编码记录在了多个 <strong>CSR</strong> 寄存器（control and status registers）中，其中就包括状态寄存器（Status Register）</p>
+<p>状态寄存器分为两种（mstatus&#x2F;sstatus）作用在于记录并控制当前 CPU 的运行状态，<code>mstatus</code> 对应 M 模式，<code>sstatus</code> 对应 S 模式，具体字段如下图所示，本代码通过操作mstatus寄存器的MPP和SPP字段来达到修改CPU特权等级的目的。<br><img src="20230727125258.png" srcset="/img/loading.gif" lazyload alt="mstatus寄存器"></p>
+<p>如下是代码中不容易理解的一些函数：</p>
+<ol>
+<li><strong>mstatus</strong>(Machine Status Registers)：保存了上一个特权模式，调用mret指令就立刻进入保存好的特权模式。因此设置好mstatus寄存器的值，再调用mret指令可以达到切换特权等级的目的。w_mstatus即write mstatus，写入mstatus寄存器，同理r_mstatus即read mstatus，表示读取mstatus寄存器的内容。</li>
+<li><strong>mepc</strong>(Machine Exception Program Counter Registers)：设置mret的返回地址。本代码将它设置为内核main函数的地址，因此mret指令完成，CPU会查询mepc寄存器，开始执行main函数。</li>
+<li><strong>satp</strong>(Supervisor Address Translation and Protection Registers)：页表寄存器，写入0就禁用了页表硬件。w_satp表示写入页表寄存器。</li>
+<li><strong>asm</strong> <strong>volatile</strong>(“xxx”);  “<strong>asm</strong>” 表示后面的代码为内嵌汇编,  “<strong>volatile</strong>” 表示编译器不要优化代码,后面的指令保留原样。括号里面的xxx是汇编指令。<br>通过这些函数，我们大概能猜到整个代码的逻辑：通过设置mstatus的模式为Supervisor Mode，mret的返回地址设置为main，再调用mret成功设置特权等级，并且让CPU紧接着准备执行main代码，这样xv6就在Supervisor Mode中进入内核程序主函数了。</li>
+</ol>
+<p>具体过程如下：</p>
+<ol>
+<li>通过在寄存器<code>mstatus</code>中，设置之前的特权模式为Supervisor Mode(24-27行)<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><code class="hljs c">  <span class="hljs-type">unsigned</span> <span class="hljs-type">long</span> x = r_mstatus();  <br>  x &amp;= ~MSTATUS_MPP_MASK;  <br>  x |= MSTATUS_MPP_S;  <br>  w_mstatus(x);  <br><br><span class="hljs-meta">#<span class="hljs-keyword">define</span> MSTATUS_MPP_MASK (3L &lt;&lt; 11) <span class="hljs-comment">// previous mode.</span></span><br><span class="hljs-meta">#<span class="hljs-keyword">define</span> MSTATUS_MPP_M (3L &lt;&lt; 11)   3L表示long 3，3是machine mode的编码</span><br><span class="hljs-meta">#<span class="hljs-keyword">define</span> MSTATUS_MPP_S (1L &lt;&lt; 11)   1是super</span><br><span class="hljs-meta">#<span class="hljs-keyword">define</span> MSTATUS_MPP_U (0L &lt;&lt; 11)</span><br>riscv.h文件中定义了这几个<br></code></pre></td></tr></table></figure></li>
+<li>通过写入main地址到寄存器<code>mepc</code>，设置返回地址为main的地址(31行)<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs c">w_mepc((uint64)main);  <br></code></pre></td></tr></table></figure></li>
+<li>通过写入0到页表寄存器<code>satp</code>，在Supervisor Mode中将<strong>虚拟地址禁用</strong>(34行)<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-comment">// disable paging for now.  </span><br>w_satp(<span class="hljs-number">0</span>);<br></code></pre></td></tr></table></figure></li>
+<li>将所有的异常与中断托付给Supervisor Mode(37-39行)<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-comment">// delegate all interrupts and exceptions to supervisor mode.  </span><br>w_medeleg(<span class="hljs-number">0xffff</span>);  <br>w_mideleg(<span class="hljs-number">0xffff</span>);  <br>w_sie(r_sie() | SIE_SEIE | SIE_STIE | SIE_SSIE);<br></code></pre></td></tr></table></figure>
+事实上，在RISC-V的标准定义中，所有陷阱默认都是由机器模式(M-mode)来处理的。然而，在支持操作系统的设备上往往都实现了监管者模式(S-Mode)，如果按照默认模式发生中断则应该首先陷入M-Mode下的中断处理程序，然后触发一个S-Mode下的中断再mret回S-Mode下处理，这个过程过于繁琐且需要程序员自己实现，所以：</li>
+</ol>
+<p>RISC-V标准为了应对这种情况提出了陷阱委派机制。也就是说在M-Mode下可以配置寄存器，从而使得S-Mode下的所有陷阱都被S-Mode下的陷阱处理函数自动接管。有两个寄存器，medeleg和mideleg，分别用来管理异常和中断的委派。</p>
+<ol start="5">
+<li>使Supervisor Mode能够接触到所有物理内存(43-44行)\<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-comment">// configure Physical Memory Protection to give supervisor mode  </span><br><span class="hljs-comment">// access to all of physical memory.  </span><br>w_pmpaddr0(<span class="hljs-number">0x3fffffffffffff</span>ull);  <br>w_pmpcfg0(<span class="hljs-number">0xf</span>);<br></code></pre></td></tr></table></figure></li>
+<li>请求时钟中断，clock初始化（具体实现在后文讲解）<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-comment">// ask for clock interrupts.  </span><br>timerinit();  <br></code></pre></td></tr></table></figure></li>
+<li>获取CPU的ID并保存在tp寄存器中<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-comment">// keep each CPU&#x27;s hartid in its tp register, for cpuid().  </span><br>  <span class="hljs-type">int</span> id = r_mhartid();  <br>  w_tp(id);  <br></code></pre></td></tr></table></figure></li>
+</ol>
+<ul>
+<li><strong>第三部分</strong></li>
+</ul>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-comment">// arrange to receive timer interrupts.  </span><br><span class="hljs-comment">// they will arrive in machine mode at  </span><br><span class="hljs-comment">// at timervec in kernelvec.S,  </span><br><span class="hljs-comment">// which turns them into software interrupts for  </span><br><span class="hljs-comment">// devintr() in trap.c.  </span><br><span class="hljs-type">void</span>  <br><span class="hljs-title function_">timerinit</span><span class="hljs-params">()</span>  <br>&#123;  <br>  <span class="hljs-comment">// each CPU has a separate source of timer interrupts.  </span><br>  <span class="hljs-type">int</span> id = r_mhartid();  <br>  <br>  <span class="hljs-comment">// ask the CLINT for a timer interrupt.  </span><br>  <span class="hljs-type">int</span> interval = <span class="hljs-number">1000000</span>; <span class="hljs-comment">// cycles; about 1/10th second in qemu.  </span><br>  *(uint64*)CLINT_MTIMECMP(id) = *(uint64*)CLINT_MTIME + interval;  <br>  <br>  <span class="hljs-comment">// prepare information in scratch[] for timervec.  </span><br>  <span class="hljs-comment">// scratch[0..2] : space for timervec to save registers.  // scratch[3] : address of CLINT MTIMECMP register.  // scratch[4] : desired interval (in cycles) between timer interrupts.  uint64 *scratch = &amp;timer_scratch[id][0];  </span><br>  scratch[<span class="hljs-number">3</span>] = CLINT_MTIMECMP(id);  <br>  scratch[<span class="hljs-number">4</span>] = interval;  <br>  w_mscratch((uint64)scratch);  <br>  <br>  <span class="hljs-comment">// set the machine-mode trap handler.  </span><br>  w_mtvec((uint64)timervec);  <br>  <br>  <span class="hljs-comment">// enable machine-mode interrupts.  </span><br>  w_mstatus(r_mstatus() | MSTATUS_MIE);  <br>  <br>  <span class="hljs-comment">// enable machine-mode timer interrupts.  </span><br>  w_mie(r_mie() | MIE_MTIE);  <br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>第三部分是时钟中断的初始化，可以先放着不管，后续有实验内容帮助理解中断的过程。</p>
+<h3 id="main-c"><a href="#main-c" class="headerlink" title="main.c"></a>main.c</h3><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-meta">#<span class="hljs-keyword">include</span> <span class="hljs-string">&quot;types.h&quot;</span>  </span><br><span class="hljs-meta">#<span class="hljs-keyword">include</span> <span class="hljs-string">&quot;param.h&quot;</span>  </span><br><span class="hljs-meta">#<span class="hljs-keyword">include</span> <span class="hljs-string">&quot;memlayout.h&quot;</span>  </span><br><span class="hljs-meta">#<span class="hljs-keyword">include</span> <span class="hljs-string">&quot;riscv.h&quot;</span>  </span><br><span class="hljs-meta">#<span class="hljs-keyword">include</span> <span class="hljs-string">&quot;defs.h&quot;</span>  </span><br>  <br><span class="hljs-keyword">volatile</span> <span class="hljs-type">static</span> <span class="hljs-type">int</span> started = <span class="hljs-number">0</span>;  <br>  <br><span class="hljs-comment">// start() jumps here in supervisor mode on all CPUs.  </span><br><span class="hljs-type">void</span>  <br><span class="hljs-title function_">main</span><span class="hljs-params">()</span>  <br>&#123;  <br>  <span class="hljs-keyword">if</span>(cpuid() == <span class="hljs-number">0</span>)&#123;  <br>    consoleinit();  <br>    printfinit();  <br>    <span class="hljs-built_in">printf</span>(<span class="hljs-string">&quot;\n&quot;</span>);  <br>    <span class="hljs-built_in">printf</span>(<span class="hljs-string">&quot;xv6 kernel is booting\n&quot;</span>);  <br>    <span class="hljs-built_in">printf</span>(<span class="hljs-string">&quot;\n&quot;</span>);  <br>    kinit();         <span class="hljs-comment">// physical page allocator  </span><br>    kvminit();       <span class="hljs-comment">// create kernel page table  </span><br>    kvminithart();   <span class="hljs-comment">// turn on paging  </span><br>    procinit();      <span class="hljs-comment">// process table  </span><br>    trapinit();      <span class="hljs-comment">// trap vectors  </span><br>    trapinithart();  <span class="hljs-comment">// install kernel trap vector  </span><br>    plicinit();      <span class="hljs-comment">// set up interrupt controller  </span><br>    plicinithart();  <span class="hljs-comment">// ask PLIC for device interrupts  </span><br>    binit();         <span class="hljs-comment">// buffer cache  </span><br>    iinit();         <span class="hljs-comment">// inode table  </span><br>    fileinit();      <span class="hljs-comment">// file table  </span><br>    virtio_disk_init(); <span class="hljs-comment">// emulated hard disk  </span><br>    userinit();      <span class="hljs-comment">// first user process  </span><br>    __sync_synchronize();  <br>    started = <span class="hljs-number">1</span>;  <br>  &#125; <span class="hljs-keyword">else</span> &#123;  <br>    <span class="hljs-keyword">while</span>(started == <span class="hljs-number">0</span>)  <br>      ;  <br>    __sync_synchronize();  <br>    <span class="hljs-built_in">printf</span>(<span class="hljs-string">&quot;hart %d starting\n&quot;</span>, cpuid());  <br>    kvminithart();    <span class="hljs-comment">// turn on paging  </span><br>    trapinithart();   <span class="hljs-comment">// install kernel trap vector  </span><br>    plicinithart();   <span class="hljs-comment">// ask PLIC for device interrupts  </span><br>  &#125;  <br>  <br>  scheduler();          <br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>在执行完 start 函数后，开始执行 main 函数。首先，判断当前的 CPU 的 ID 是否为主 CPU（cpuid() &#x3D;&#x3D; 0） 。</p>
+<p>如果是主 CPU ，则执行一系列的初始化操作，包括：</p>
+<ul>
+<li><code>consoleinit(); </code>控制台初始化；</li>
+<li><code>printfinit(); </code>打印模块初始化；</li>
+<li><code>kinit(); </code>和 <code>kvminit(); </code>创建内核页表；</li>
+<li><code>kvminithart(); </code>打开分页机制；</li>
+<li><code>procinit(); </code>创建进程表；</li>
+<li><code>trapinit(); </code>和 <code>trapinithart();</code> 和<code> plicinit();</code> 设置系统中断向量和系统中断初始化；</li>
+<li><code>plicinithart(); </code>设备中断初始化；</li>
+<li><code>binit(); </code>和<code>iinit();</code>磁盘缓冲和磁盘节点的初始化；</li>
+<li><code>fileinit(); </code>文件系统的初始化；</li>
+<li><code>virtio_disk_init(); </code>磁盘初始化；</li>
+<li><code>userinit(); </code>创建第一个用户进程，第一个进程执行一个小程序 user&#x2F;initcode.S ，该程序通过调用 exec 系统调用重新进入内核；</li>
+<li><code>sync_synchronize();</code> 是 gcc 提供的原子操作，保证内存访问的操作都是原子操作；</li>
+<li><code>started = 1;</code> 是设置初始化完成的标志。</li>
+</ul>
+<p>如果不是主 CPU ，首先循环等待主 CPU 初始化完成，当主 CPU 初始化完成，则初始化完成标志 started 为 1 ，跳出循环。然后同样是：</p>
+<ul>
+<li><code>sync_synchronize();</code> gcc 提供的原子操作，保证内存访问的操作都是原子操作。</li>
+<li><code>kvminithart();</code> 打开分页功能</li>
+<li><code>trapinithart(); </code>和 <code>plicinithart(); </code>设置系统和设备的中断初始化。</li>
+</ul>
+<p>以上函数的声明都包含在kernel&#x2F;defs.h文件中。</p>
+<h2 id="第一个用户进程"><a href="#第一个用户进程" class="headerlink" title="第一个用户进程"></a>第一个用户进程</h2><p>从main.c代码中我们可以发现在启动第一个进程之前，还有很多准备工作。我们暂时不去看他们，先学习第一个进程对应的代码：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-comment">// Set up first user process.  </span><br><span class="hljs-type">void</span>  <br><span class="hljs-title function_">userinit</span><span class="hljs-params">(<span class="hljs-type">void</span>)</span>  <br>&#123;  <br>  <span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">proc</span> *<span class="hljs-title">p</span>;</span>    <span class="hljs-comment">//新建进程的结构体</span><br>  <br>  p = allocproc();   <span class="hljs-comment">//第一个进程分配空间等初始化步骤基本都在该函数中进行，具体看下文</span><br>  initproc = p;  <br>    <br>  <span class="hljs-comment">// allocate one user page and copy init&#x27;s instructions  </span><br>  <span class="hljs-comment">// and data into it.  </span><br>  uvminit(p-&gt;pagetable, initcode, <span class="hljs-keyword">sizeof</span>(initcode));   <br>  p-&gt;sz = PGSIZE;   <span class="hljs-comment">//sz变量表示进程的最大内存空间</span><br>  <br>  <span class="hljs-comment">// prepare for the very first &quot;return&quot; from kernel to user.  </span><br>  <span class="hljs-comment">// user program counter</span><br>  <span class="hljs-comment">//指令指针指向初始化代码的入口点，即地址0。</span><br>  p-&gt;trapframe-&gt;epc = <span class="hljs-number">0</span>;  <br>  <span class="hljs-comment">// user stack pointer </span><br>  <span class="hljs-comment">//栈指针被设置为虚拟空间最大值（初始化）</span><br>  p-&gt;trapframe-&gt;sp = PGSIZE;  <br>  <br>  safestrcpy(p-&gt;name, <span class="hljs-string">&quot;initcode&quot;</span>, <span class="hljs-keyword">sizeof</span>(p-&gt;name));   <span class="hljs-comment">//设置进程的名称，方便调试</span><br>  p-&gt;cwd = namei(<span class="hljs-string">&quot;/&quot;</span>);   <span class="hljs-comment">//指定进程的工作目录</span><br>  <br>  p-&gt;state = RUNNABLE;   <span class="hljs-comment">//进程已经初始化完毕，修改状态，表示它可以被调度了</span><br>  <br>  release(&amp;p-&gt;lock);   <span class="hljs-comment">//完成对进程的操作，释放锁</span><br>&#125;<br></code></pre></td></tr></table></figure>
+
+<hr>
+<p>这段代码内部完成了很多事情，把他拆开来看：</p>
+<p><strong>1. allocproc函数</strong>（构建新进程）</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-comment">//进程表，NPROC表示支持的最大进程数量，xv6设置为64</span><br><span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">proc</span> <span class="hljs-title">proc</span>[<span class="hljs-title">NPROC</span>];</span><br><br><span class="hljs-comment">// Look in the process table for an UNUSED proc.  </span><br><span class="hljs-comment">// If found, initialize state required to run in the kernel,  </span><br><span class="hljs-comment">// and return with p-&gt;lock held.  </span><br><span class="hljs-comment">// If there are no free procs, or a memory allocation fails, return 0.  </span><br><span class="hljs-type">static</span> <span class="hljs-keyword">struct</span> proc* <br><span class="hljs-title function_">allocproc</span><span class="hljs-params">(<span class="hljs-type">void</span>)</span>  <br>&#123;  <br>  <span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">proc</span> *<span class="hljs-title">p</span>;</span>  <br><br>	<span class="hljs-comment">//proc是进程表，&amp;proc[NPROC]是获取数组首地址，循环通过递增指针的方式遍历进程表</span><br>  <span class="hljs-keyword">for</span>(p = proc; p &lt; &amp;proc[NPROC]; p++) &#123;<br>    acquire(&amp;p-&gt;lock);  <span class="hljs-comment">//每个表格中的进程要加锁才能进行操作，同时该函数会关闭中断避免死锁</span><br>    <span class="hljs-keyword">if</span>(p-&gt;state == UNUSED) &#123;   <span class="hljs-comment">//寻找第一个state为UNUSED（未使用的）进程</span><br>      <span class="hljs-keyword">goto</span> found;   <span class="hljs-comment">//找到空位，可以执行初始化进程的操作</span><br>    &#125; <span class="hljs-keyword">else</span> &#123;   <br>      release(&amp;p-&gt;lock);   <span class="hljs-comment">//未找到空位，释放当前指针所指向进程的锁，然后继续循环寻找</span><br>    &#125;  <br>  &#125;  <br>  <span class="hljs-keyword">return</span> <span class="hljs-number">0</span>;  <br>  <br>found:   <br>  p-&gt;pid = allocpid();   <span class="hljs-comment">//为进程分配pid（进程的编号，唯一标识）</span><br>  p-&gt;state = USED;   <span class="hljs-comment">//将state设置为USED（已使用），state用于描述进程的状态</span><br>  <br>  <span class="hljs-comment">// Allocate a trapframe page.  </span><br>  <span class="hljs-comment">//为进程分配trapframe（用于保存中断时的进程上下文），这个结构在中断章节会进一步讲解</span><br>  <span class="hljs-comment">//kalloc函数可以分配物理内存，失败则返回0，这里是</span><br>  <span class="hljs-keyword">if</span>((p-&gt;trapframe = (<span class="hljs-keyword">struct</span> trapframe *)kalloc()) == <span class="hljs-number">0</span>)&#123;<br>    freeproc(p);   <span class="hljs-comment">//如果分配失败，则将设置的pid等信息全部还原</span><br>    release(&amp;p-&gt;lock);   <span class="hljs-comment">//释放锁</span><br>    <span class="hljs-keyword">return</span> <span class="hljs-number">0</span>;  <br>  &#125;  <br>  <br>  <span class="hljs-comment">// An empty user page table.</span><br>  p-&gt;pagetable = proc_pagetable(p);  <span class="hljs-comment">//为进程分配页表</span><br>  <span class="hljs-keyword">if</span>(p-&gt;pagetable == <span class="hljs-number">0</span>)&#123;  <br>    freeproc(p);  <span class="hljs-comment">//如果分配失败，则将设置的pid等信息全部还原</span><br>    release(&amp;p-&gt;lock);   <span class="hljs-comment">//释放锁</span><br>    <span class="hljs-keyword">return</span> <span class="hljs-number">0</span>;  <br>  &#125;  <br>  <br>  <span class="hljs-comment">// Set up new context to start executing at forkret,  </span><br>  <span class="hljs-comment">// which returns to user space.  memset(&amp;p-&gt;context, 0, sizeof(p-&gt;context));  </span><br>  <span class="hljs-comment">//context是保存内核中进程上下文切换时寄存器值的结构体</span><br>  <span class="hljs-comment">//当调用ret指令时，指令寄存器pc会被重置为ra寄存器所保存的地址</span><br>  <span class="hljs-comment">//进程调度切换上下文后会有ret指令，所以此处ra其实指定了CPU加载该进程后运行的程序是什么</span><br>  p-&gt;context.ra = (uint64)forkret;   <br>  p-&gt;context.sp = p-&gt;kstack + PGSIZE;   <br>  <span class="hljs-comment">//sp 栈指针,kstack是内核栈的地址，PGSIZE是常量，表示每个页的大小（4096 字节）</span><br><br>  <span class="hljs-keyword">return</span> p;  <br>&#125;<br></code></pre></td></tr></table></figure>
+<p>这是一个使用static修饰的函数，返回一个进程结构体指针的。static 常在两种情况下使用：</p>
+<ol>
+<li>变量：static变量不会在函数重新进入时再次赋初值；不会在函数结束时而释放（存储在全局区）</li>
+<li>函数：static函数只能在本文件中调用，不能在其他文件中调用</li>
+</ol>
+<p>函数的逻辑如下图：</p>
+<p><img src="20230816182438.png" srcset="/img/loading.gif" lazyload alt="运行流程图"><br>在新建进程时有三个结构体非常重要，后续会进一步讲解，这里只需要知道它们是干什么的即可：</p>
+<ol>
+<li>保存进程运行情况的trapframe（栈帧）</li>
+<li>上下文切换时记录状态的context</li>
+<li>pagetable（页表）</li>
+</ol>
+<p><strong>2. 分配物理内存（虚拟地址映射）</strong></p>
+<p>在申请完进程结构体后，进程中保存的栈指针其实是个虚拟地址，让进程有自己在使用整个内存空间的错觉，其实要真正使用，还需要为进程分配真实的物理地址</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-comment">// Load the user initcode into address 0 of pagetable,  </span><br><span class="hljs-comment">// for the very first process.  </span><br><span class="hljs-comment">// sz must be less than a page.  </span><br><span class="hljs-type">void</span>  <br><span class="hljs-title function_">uvminit</span><span class="hljs-params">(<span class="hljs-type">pagetable_t</span> pagetable, uchar *src, uint sz)</span>  <br>&#123;  <br>  <span class="hljs-type">char</span> *mem;  <br>  <br>  <span class="hljs-keyword">if</span>(sz &gt;= PGSIZE)  <br>    panic(<span class="hljs-string">&quot;inituvm: more than a page&quot;</span>);  <br>  mem = kalloc();   <span class="hljs-comment">//kalloc会分配一个4k大小的物理内存并返回指针</span><br>  <span class="hljs-built_in">memset</span>(mem, <span class="hljs-number">0</span>, PGSIZE);   <span class="hljs-comment">//将物理内存初始化为0</span><br>  <span class="hljs-comment">//mappages将进程结构体中的虚拟内存pagetable映射到物理内存mem</span><br>  mappages(pagetable, <span class="hljs-number">0</span>, PGSIZE, (uint64)mem, PTE_W|PTE_R|PTE_X|PTE_U);  <br>  memmove(mem, src, sz);  <span class="hljs-comment">//src指向位置的，大小为sz的内容，复制到mem指向的空间中</span><br>&#125;<br></code></pre></td></tr></table></figure>
+<p>上述代码涉及到虚拟内存和页表相关的知识，后续会进一步讨论</p>
+<hr>
+<p>在介绍完第一个进程创建过程中非常重要的两个函数调用后，我们可以回头再看第一个进程初始化的代码：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-comment">// Set up first user process.  </span><br><span class="hljs-type">void</span>  <br><span class="hljs-title function_">userinit</span><span class="hljs-params">(<span class="hljs-type">void</span>)</span>  <br>&#123;  <br>  <span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">proc</span> *<span class="hljs-title">p</span>;</span>    <span class="hljs-comment">//新建进程的结构体</span><br>  <br>  p = allocproc();   <span class="hljs-comment">//第一个进程分配空间等初始化步骤基本都在该函数中进行，具体看下文</span><br>  initproc = p;  <br>    <br>  <span class="hljs-comment">// allocate one user page and copy init&#x27;s instructions  </span><br>  <span class="hljs-comment">// and data into it.  </span><br>  uvminit(p-&gt;pagetable, initcode, <span class="hljs-keyword">sizeof</span>(initcode));   <br>  p-&gt;sz = PGSIZE;   <span class="hljs-comment">//sz变量表示进程的最大内存空间</span><br>  <br>  <span class="hljs-comment">// prepare for the very first &quot;return&quot; from kernel to user.  </span><br>  <span class="hljs-comment">// user program counter</span><br>  <span class="hljs-comment">//指令指针指向初始化代码的入口点，即地址0（虚拟地址）。</span><br>  p-&gt;trapframe-&gt;epc = <span class="hljs-number">0</span>;  <br>  <span class="hljs-comment">// user stack pointer </span><br>  <span class="hljs-comment">//栈指针被设置为虚拟空间最大值（初始化），进行压栈操作，sp会减小（xv6的栈是倒着的）</span><br>  p-&gt;trapframe-&gt;sp = PGSIZE;  <br>  <br>  safestrcpy(p-&gt;name, <span class="hljs-string">&quot;initcode&quot;</span>, <span class="hljs-keyword">sizeof</span>(p-&gt;name));   <span class="hljs-comment">//设置进程的名称，方便调试</span><br>  p-&gt;cwd = namei(<span class="hljs-string">&quot;/&quot;</span>);   <span class="hljs-comment">//指定进程的工作目录</span><br>  <br>  p-&gt;state = RUNNABLE;   <span class="hljs-comment">//进程已经初始化完毕，修改状态，表示它可以被调度了</span><br>  <br>  release(&amp;p-&gt;lock);   <span class="hljs-comment">//完成对进程的操作，释放锁</span><br>&#125;<br></code></pre></td></tr></table></figure>
+<p>上述代码中，完成了进程创建和虚拟地址映射两个操作后，剩下的就是对进程的细微调整</p>
+<ol>
+<li>初始化栈帧的epc指针和sp指针</li>
+<li>为进程命名</li>
+<li>指定工作目录</li>
+<li>修改进程状态为就绪态，随时等待CPU”宠幸”</li>
+<li>完成对进程结构体的更改，释放锁</li>
+</ol>
+<p>然而完成了对第一个进程结构体的创建，不代表第一个进程已经运行起来了。我们还需要理解进程这个结构体是怎么运行起来的（如何被CPU使用）</p>
+<p><strong>2. scheduler（进程调度）</strong></p>
+<p>在main.c函数中，我们可以发现完成userinit后会调用scheduler()函数，这个函数是一个死循环：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-comment">// Per-CPU process scheduler.  </span><br><span class="hljs-comment">// Each CPU calls scheduler() after setting itself up.  </span><br><span class="hljs-comment">// Scheduler never returns.  It loops, doing:  </span><br><span class="hljs-comment">//  - choose a process to run.  </span><br><span class="hljs-comment">//  - swtch to start running that process.  </span><br><span class="hljs-comment">//  - eventually that process transfers control  </span><br><span class="hljs-comment">//    via swtch back to the scheduler.  </span><br><span class="hljs-type">void</span>  <br><span class="hljs-title function_">scheduler</span><span class="hljs-params">(<span class="hljs-type">void</span>)</span>  <br>&#123;  <br>  <span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">proc</span> *<span class="hljs-title">p</span>;</span>  <br>  <span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">cpu</span> *<span class="hljs-title">c</span> =</span> mycpu();  <br>    <br>  c-&gt;proc = <span class="hljs-number">0</span>;  <br>  <span class="hljs-keyword">for</span>(;;)&#123;  <br>    <span class="hljs-comment">// Avoid deadlock by ensuring that devices can interrupt.  </span><br>    intr_on();  <br>  <br>    <span class="hljs-keyword">for</span>(p = proc; p &lt; &amp;proc[NPROC]; p++) &#123;  <br>      acquire(&amp;p-&gt;lock);  <br>      <span class="hljs-keyword">if</span>(p-&gt;state == RUNNABLE) &#123;  <br>        <span class="hljs-comment">// Switch to chosen process.  It is the process&#x27;s job  </span><br>        <span class="hljs-comment">// to release its lock and then reacquire it        // before jumping back to us.        p-&gt;state = RUNNING;  </span><br>        c-&gt;proc = p;  <br>        swtch(&amp;c-&gt;context, &amp;p-&gt;context); <br>  <br>        <span class="hljs-comment">// Process is done running for now.  </span><br>        <span class="hljs-comment">// It should have changed its p-&gt;state before coming back.        c-&gt;proc = 0;  </span><br>      &#125;  <br>      release(&amp;p-&gt;lock);  <br>    &#125;  <br>  &#125;  <br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>每个CPU都会执行这个代码，在初始化CPU结构体之后开始循环。具体的逻辑很容易理解：</p>
+<ul>
+<li>打开中断（在之前的操作中，中断是关闭的，在开始执行进程前要打开中断避免死锁）</li>
+<li>遍历进程表，找到就绪态的进程</li>
+<li>给进程上锁，运行进程</li>
+<li>运行结束，释放锁</li>
+<li>继续遍历</li>
+</ul>
+<p>可以发现核心代码就是循环体中的<code>swtch(&amp;c-&gt;context, &amp;p-&gt;context); </code><br>为什么把进程结构体的上下文和CPU结构体的上下文传入swtch就可以实现进程的切换了？</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br></pre></td><td class="code"><pre><code class="hljs c"># Context <span class="hljs-keyword">switch</span>  <br>#  <br><span class="hljs-meta">#   void swtch(struct context *old, struct context *new);  </span><br>#   <br># Save current registers in old. Load from new.      <br>  <br>  <br>.globl swtch  <br>swtch:  <br>        sd ra, <span class="hljs-number">0</span>(a0)   <span class="hljs-comment">//0(a0)的意思是a0寄存器的内容作为基址 + 0得到真正的地址</span><br>        sd sp, <span class="hljs-number">8</span>(a0)  <br>        sd s0, <span class="hljs-number">16</span>(a0)  <br>        sd s1, <span class="hljs-number">24</span>(a0)  <br>        sd s2, <span class="hljs-number">32</span>(a0)  <br>        sd s3, <span class="hljs-number">40</span>(a0)  <br>        sd s4, <span class="hljs-number">48</span>(a0)  <br>        sd s5, <span class="hljs-number">56</span>(a0)  <br>        sd s6, <span class="hljs-number">64</span>(a0)  <br>        sd s7, <span class="hljs-number">72</span>(a0)  <br>        sd s8, <span class="hljs-number">80</span>(a0)  <br>        sd s9, <span class="hljs-number">88</span>(a0)  <br>        sd s10, <span class="hljs-number">96</span>(a0)  <br>        sd s11, <span class="hljs-number">104</span>(a0)  <br>  <br>        ld ra, <span class="hljs-number">0</span>(a1)  <br>        ld sp, <span class="hljs-number">8</span>(a1)  <br>        ld s0, <span class="hljs-number">16</span>(a1)  <br>        ld s1, <span class="hljs-number">24</span>(a1)  <br>        ld s2, <span class="hljs-number">32</span>(a1)  <br>        ld s3, <span class="hljs-number">40</span>(a1)  <br>        ld s4, <span class="hljs-number">48</span>(a1)  <br>        ld s5, <span class="hljs-number">56</span>(a1)  <br>        ld s6, <span class="hljs-number">64</span>(a1)  <br>        ld s7, <span class="hljs-number">72</span>(a1)  <br>        ld s8, <span class="hljs-number">80</span>(a1)  <br>        ld s9, <span class="hljs-number">88</span>(a1)  <br>        ld s10, <span class="hljs-number">96</span>(a1)  <br>        ld s11, <span class="hljs-number">104</span>(a1)  <br>          <br>        ret<br></code></pre></td></tr></table></figure>
+
+<p>swtch函数其实是用汇编代码实现的（swtch.S），它的作用就是切换CPU运行时使用的寄存器的值，也就是进程的context结构体中记录的内容。具体来说，上面的代码就是实现了先保存现在寄存器的值到<strong>a0寄存器</strong>指向的位置，再加载新的值到<strong>a1寄存器</strong>指向的位置：</p>
+<ul>
+<li>sd是指store doubleword，将寄存器的值存入存储器</li>
+<li>ld则是load doubleword，将存储器的值加载进寄存器</li>
+<li>ret指令，CPU会将PC重置为ra寄存器的值<br>a0寄存器对应了swtch函数的第一个参数，是当前进程的context对象的地址，保存它的意义在于当前进程因为各种原因被调度走了，下次还可以在上次CPU中断的位置继续完成任务。<br>a1寄存器对应了swtch函数的第二个参数，是即将要CPU执行的进程对应的context结构体地址</li>
+</ul>
+<p>注意：一般来说，ra寄存器存放目前进程代码执行到的位置，方便下一次CPU调度该进程时可以接着执行，但由于是第一个进程，ra寄存器实际指向了我们想要执行的第一个程序</p>
+<p>还记得吗？在新建第一个进程的时候，<code>p-&gt;context.ra = (uint64)forkret; </code> 新进程的ra寄存器的值被设定为forkret函数的地址，所以第一个进程实际上会先完成forkret函数的工作</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-comment">// A fork child&#x27;s very first scheduling by scheduler()  </span><br><span class="hljs-comment">// will swtch to forkret.  </span><br><span class="hljs-type">void</span>  <br><span class="hljs-title function_">forkret</span><span class="hljs-params">(<span class="hljs-type">void</span>)</span>  <br>&#123;  <br>  <span class="hljs-type">static</span> <span class="hljs-type">int</span> first = <span class="hljs-number">1</span>;  <br>  <br>  <span class="hljs-comment">// Still holding p-&gt;lock from scheduler.  </span><br>  release(&amp;myproc()-&gt;lock);  <br>  <br>  <span class="hljs-keyword">if</span> (first) &#123;  <br>    <span class="hljs-comment">// File system initialization must be run in the context of a  </span><br>    <span class="hljs-comment">// regular process (e.g., because it calls sleep), and thus cannot    // be run from main().    first = 0;  </span><br>    fsinit(ROOTDEV);  <br>  &#125;  <br>  <br>  usertrapret();  <br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>forkret函数会初始化文件系统，注意：文件系统的初始化代码因为涉及到sleep系统调用，因此必须通过一个常规的进程运行，而不是再上文的main.c中进行</p>
+<p>完成初始化后，程序会执行usertrapret()函数，这是一个从内核态返回用户态的函数。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-comment">//  </span><br><span class="hljs-comment">// return to user space  </span><br><span class="hljs-comment">//  </span><br><span class="hljs-type">void</span>  <br><span class="hljs-title function_">usertrapret</span><span class="hljs-params">(<span class="hljs-type">void</span>)</span>  <br>&#123;  <br>  <span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">proc</span> *<span class="hljs-title">p</span> =</span> myproc();  <br>  <br>  <span class="hljs-comment">// we&#x27;re about to switch the destination of traps from  </span><br>  <span class="hljs-comment">// kerneltrap() to usertrap(), so turn off interrupts until  // we&#x27;re back in user space, where usertrap() is correct.  intr_off();  </span><br>  <br>  <span class="hljs-comment">// send syscalls, interrupts, and exceptions to trampoline.S  </span><br>  w_stvec(TRAMPOLINE + (uservec - trampoline));  <br>  <br>  <span class="hljs-comment">// set up trapframe values that uservec will need when  </span><br>  <span class="hljs-comment">// the process next re-enters the kernel.  p-&gt;trapframe-&gt;kernel_satp = r_satp();         // kernel page table  </span><br>  p-&gt;trapframe-&gt;kernel_sp = p-&gt;kstack + PGSIZE; <span class="hljs-comment">// process&#x27;s kernel stack  </span><br>  p-&gt;trapframe-&gt;kernel_trap = (uint64)usertrap;  <br>  p-&gt;trapframe-&gt;kernel_hartid = r_tp();         <span class="hljs-comment">// hartid for cpuid()  </span><br>  <br>  <span class="hljs-comment">// set up the registers that trampoline.S&#x27;s sret will use  // to get to user space.    // set S Previous Privilege mode to User.  </span><br>  <span class="hljs-type">unsigned</span> <span class="hljs-type">long</span> x = r_sstatus();  <br>  x &amp;= ~SSTATUS_SPP; <span class="hljs-comment">// clear SPP to 0 for user mode  </span><br>  x |= SSTATUS_SPIE; <span class="hljs-comment">// enable interrupts in user mode  </span><br>  w_sstatus(x);  <br>  <br>  <span class="hljs-comment">// set S Exception Program Counter to the saved user pc.  </span><br>  w_sepc(p-&gt;trapframe-&gt;epc);  <br>  <br>  <span class="hljs-comment">// tell trampoline.S the user page table to switch to.  </span><br>  uint64 satp = MAKE_SATP(p-&gt;pagetable);  <br>  <br>  <span class="hljs-comment">// jump to trampoline.S at the top of memory, which   </span><br>  <span class="hljs-comment">// switches to the user page table, restores user registers,  </span><br>  <span class="hljs-comment">// and switches to user mode with sret.  uint64 fn = TRAMPOLINE + (userret - trampoline);  </span><br>  ((<span class="hljs-type">void</span> (*)(uint64,uint64))fn)(TRAPFRAME, satp);  <br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>这部分代码涉及到了中断的内容，会在后续章节学习，只需要知道：</p>
+<ol>
+<li>在这段代码中先将内核层级设定为用户态</li>
+<li>通过<code>w_sepc(p-&gt;trapframe-&gt;epc);  </code> 设置PC（程序计数器）的值为寄存器中预先存好的值</li>
+<li>CPU因为从PC处执行指令，因此执行<code>p-&gt;trapframe-&gt;epc</code>指向的代码。</li>
+</ol>
+<p>在第一个进程中，epc指向虚拟地址0，该虚拟地址绑定的物理地址实际指向initcode</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-comment">// a user program that calls exec(&quot;/init&quot;)  </span><br><span class="hljs-comment">// od -t xC initcode  </span><br>uchar initcode[] = &#123;  <br>  <span class="hljs-number">0x17</span>, <span class="hljs-number">0x05</span>, <span class="hljs-number">0x00</span>, <span class="hljs-number">0x00</span>, <span class="hljs-number">0x13</span>, <span class="hljs-number">0x05</span>, <span class="hljs-number">0x45</span>, <span class="hljs-number">0x02</span>,  <br>  <span class="hljs-number">0x97</span>, <span class="hljs-number">0x05</span>, <span class="hljs-number">0x00</span>, <span class="hljs-number">0x00</span>, <span class="hljs-number">0x93</span>, <span class="hljs-number">0x85</span>, <span class="hljs-number">0x35</span>, <span class="hljs-number">0x02</span>,  <br>  <span class="hljs-number">0x93</span>, <span class="hljs-number">0x08</span>, <span class="hljs-number">0x70</span>, <span class="hljs-number">0x00</span>, <span class="hljs-number">0x73</span>, <span class="hljs-number">0x00</span>, <span class="hljs-number">0x00</span>, <span class="hljs-number">0x00</span>,  <br>  <span class="hljs-number">0x93</span>, <span class="hljs-number">0x08</span>, <span class="hljs-number">0x20</span>, <span class="hljs-number">0x00</span>, <span class="hljs-number">0x73</span>, <span class="hljs-number">0x00</span>, <span class="hljs-number">0x00</span>, <span class="hljs-number">0x00</span>,  <br>  <span class="hljs-number">0xef</span>, <span class="hljs-number">0xf0</span>, <span class="hljs-number">0x9f</span>, <span class="hljs-number">0xff</span>, <span class="hljs-number">0x2f</span>, <span class="hljs-number">0x69</span>, <span class="hljs-number">0x6e</span>, <span class="hljs-number">0x69</span>,  <br>  <span class="hljs-number">0x74</span>, <span class="hljs-number">0x00</span>, <span class="hljs-number">0x00</span>, <span class="hljs-number">0x24</span>, <span class="hljs-number">0x00</span>, <span class="hljs-number">0x00</span>, <span class="hljs-number">0x00</span>, <span class="hljs-number">0x00</span>,  <br>  <span class="hljs-number">0x00</span>, <span class="hljs-number">0x00</span>, <span class="hljs-number">0x00</span>, <span class="hljs-number">0x00</span>  <br>&#125;;<br></code></pre></td></tr></table></figure>
+<p>这其实是initcode二进制代码的十六进制显示，也就是说CPU要开始加载initcode代码</p>
+<p>也就是下面的汇编代码：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br></pre></td><td class="code"><pre><code class="hljs c"># Initial process that execs /init.  <br># This code runs in user space.  <br>  <br><span class="hljs-meta">#<span class="hljs-keyword">include</span> <span class="hljs-string">&quot;syscall.h&quot;</span>  </span><br>  <br><span class="hljs-meta"># exec(init, argv)  </span><br>.globl start  <br>start:  <br>        la a0, init    <span class="hljs-comment">//la将一个内存地址的值加载到rd寄存器中</span><br>        la a1, argv    <br>        li a7, SYS_exec <span class="hljs-comment">//li可以将任意的32位数据或者地址加载到指定的寄存器中</span><br>        ecall  <br>  <br><span class="hljs-meta"># for(;;) exit();  </span><br><span class="hljs-built_in">exit</span>:  <br>        li a7, SYS_exit  <br>        ecall  <br>        jal <span class="hljs-built_in">exit</span>  <br>  <br><span class="hljs-meta"># char init[] = <span class="hljs-string">&quot;/init\0&quot;</span>;  </span><br>init:  <br>  .<span class="hljs-built_in">string</span> <span class="hljs-string">&quot;/init\0&quot;</span>  <br>  <br><span class="hljs-meta"># char *argv[] = &#123; init, 0 &#125;;  </span><br>.p2align <span class="hljs-number">2</span>  <br>argv:  <br>  .<span class="hljs-type">long</span> init  <br>  .<span class="hljs-type">long</span> <span class="hljs-number">0</span><br></code></pre></td></tr></table></figure>
+<p>这段汇编代码的主要作用是触发系统调用exec（这个系统调用的作用前文已经讲过），执行名为init的程序（由user&#x2F;init.c编译得到），如果exec失败，则循环运行一个不会返回的系统调用exit</p>
+<p>init的代码如下：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-comment">// init: The initial user-level program  </span><br>  <br><span class="hljs-meta">#<span class="hljs-keyword">include</span> <span class="hljs-string">&quot;kernel/types.h&quot;</span>  </span><br><span class="hljs-meta">#<span class="hljs-keyword">include</span> <span class="hljs-string">&quot;kernel/stat.h&quot;</span>  </span><br><span class="hljs-meta">#<span class="hljs-keyword">include</span> <span class="hljs-string">&quot;kernel/spinlock.h&quot;</span>  </span><br><span class="hljs-meta">#<span class="hljs-keyword">include</span> <span class="hljs-string">&quot;kernel/sleeplock.h&quot;</span>  </span><br><span class="hljs-meta">#<span class="hljs-keyword">include</span> <span class="hljs-string">&quot;kernel/fs.h&quot;</span>  </span><br><span class="hljs-meta">#<span class="hljs-keyword">include</span> <span class="hljs-string">&quot;kernel/file.h&quot;</span>  </span><br><span class="hljs-meta">#<span class="hljs-keyword">include</span> <span class="hljs-string">&quot;user/user.h&quot;</span>  </span><br><span class="hljs-meta">#<span class="hljs-keyword">include</span> <span class="hljs-string">&quot;kernel/fcntl.h&quot;</span>  </span><br>  <br><span class="hljs-type">char</span> *argv[] = &#123; <span class="hljs-string">&quot;sh&quot;</span>, <span class="hljs-number">0</span> &#125;;  <br>  <br><span class="hljs-type">int</span>  <br><span class="hljs-title function_">main</span><span class="hljs-params">(<span class="hljs-type">void</span>)</span>  <br>&#123;  <br>  <span class="hljs-type">int</span> pid, wpid;  <br>  <br>  <span class="hljs-keyword">if</span>(open(<span class="hljs-string">&quot;console&quot;</span>, O_RDWR) &lt; <span class="hljs-number">0</span>)&#123;  <br>    mknod(<span class="hljs-string">&quot;console&quot;</span>, CONSOLE, <span class="hljs-number">0</span>);  <br>    open(<span class="hljs-string">&quot;console&quot;</span>, O_RDWR);  <br>  &#125;  <br>  dup(<span class="hljs-number">0</span>);  <span class="hljs-comment">// stdout  </span><br>  dup(<span class="hljs-number">0</span>);  <span class="hljs-comment">// stderr  </span><br><br>  <span class="hljs-comment">//启动shell</span><br>  <span class="hljs-keyword">for</span>(;;)&#123;  <br>    <span class="hljs-built_in">printf</span>(<span class="hljs-string">&quot;init: starting sh\n&quot;</span>);   <br>    pid = fork();  <br>    <span class="hljs-keyword">if</span>(pid &lt; <span class="hljs-number">0</span>)&#123;  <br>      <span class="hljs-built_in">printf</span>(<span class="hljs-string">&quot;init: fork failed\n&quot;</span>);  <br>      <span class="hljs-built_in">exit</span>(<span class="hljs-number">1</span>);  <br>    &#125;  <br>    <span class="hljs-keyword">if</span>(pid == <span class="hljs-number">0</span>)&#123;  <br>      exec(<span class="hljs-string">&quot;sh&quot;</span>, argv);  <br>      <span class="hljs-built_in">printf</span>(<span class="hljs-string">&quot;init: exec sh failed\n&quot;</span>);  <br>      <span class="hljs-built_in">exit</span>(<span class="hljs-number">1</span>);  <br>    &#125;  <br><br>	<span class="hljs-comment">//shell启动成功，进入死循环，</span><br>    <span class="hljs-keyword">for</span>(;;)&#123;  <br>      <span class="hljs-comment">// this call to wait() returns if the shell exits,  </span><br>      <span class="hljs-comment">// or if a parentless process exits.      wpid = wait((int *) 0);  </span><br>      <span class="hljs-keyword">if</span>(wpid == pid)&#123;  <br>        <span class="hljs-comment">// the shell exited; restart it.  </span><br>        <span class="hljs-keyword">break</span>;  <br>      &#125; <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span>(wpid &lt; <span class="hljs-number">0</span>)&#123;  <br>        <span class="hljs-built_in">printf</span>(<span class="hljs-string">&quot;init: wait returned an error\n&quot;</span>);  <br>        <span class="hljs-built_in">exit</span>(<span class="hljs-number">1</span>);  <br>      &#125; <span class="hljs-keyword">else</span> &#123;  <br>        <span class="hljs-comment">// it was a parentless process; do nothing.  </span><br>      &#125;  <br>    &#125;  <br>  &#125;  <br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>init会在需要的情况下创建一个新的控制台设备文件，然后把它作为描述符0，1，2打开。接下来它将不断循环，开启控制台 shell，处理没有父进程的僵尸进程，直到 shell 退出，然后再反复。系统就这样运行起来了。</p>
+<h2 id="现实情况"><a href="#现实情况" class="headerlink" title="现实情况"></a>现实情况</h2><p>大多操作系统都采用了进程这个概念，而大多的进程都和 xv6 的进程类似。但是真正的操作系统会利用一个显式的链表在常数时间内找到空闲的 <code>proc</code>，而不像本文 <code>allocproc</code> 中那样花费线性时间；xv6 使用的是朴素的线性搜索，找第一个空闲的 <code>proc</code>（详情见前文的scheduler.c代码）。</p>
+<p>注意：xv6 的地址空间结构有一个缺点，即无法使用超过 2GB 的物理 RAM。当然我们可以解决这个问题，不过最好的解决方法还是使用64位的机器。</p>
+<h2 id="结尾"><a href="#结尾" class="headerlink" title="结尾"></a>结尾</h2><p>完成了对书籍第二章内容的阅读和扩展阅读，写成了这一篇笔记，在开始第三章学习之前，要先进入到系统调用相关的练习中了。</p>
+<p>感谢你能看到这里！幸苦了！！</p>
+
+                
+              </div>
+            
+            <hr/>
+            <div>
+              <div class="post-metas my-3">
+  
+  
+    <div class="post-meta">
+      <i class="iconfont icon-tags"></i>
+      
+        <a href="/tags/xv6/" class="print-no-link">#xv6</a>
+      
+    </div>
+  
+</div>
+
+
+              
+  
+
+  <div class="license-box my-3">
+    <div class="license-title">
+      <div>xv6-book Chapter2</div>
+      <div>http://example.com/2023/07/27/xv6-book-Chapter2/</div>
+    </div>
+    <div class="license-meta">
+      
+        <div class="license-meta-item">
+          <div>作者</div>
+          <div>Cygnus</div>
+        </div>
+      
+      
+        <div class="license-meta-item license-meta-date">
+          <div>发布于</div>
+          <div>2023年7月27日</div>
+        </div>
+      
+      
+      
+        <div class="license-meta-item">
+          <div>许可协议</div>
+          <div>
+            
+              
+              
+                <a class="print-no-link" target="_blank" href="https://creativecommons.org/licenses/by/4.0/">
+                  <span class="hint--top hint--rounded" aria-label="BY - 署名">
+                    <i class="iconfont icon-by"></i>
+                  </span>
+                </a>
+              
+            
+          </div>
+        </div>
+      
+    </div>
+    <div class="license-icon iconfont"></div>
+  </div>
+
+
+
+              
+                <div class="post-prevnext my-3">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/2023/08/14/Lab1-Xv6-and-Unix-utilities/" title="Lab1 Xv6 and Unix utilities">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">Lab1 Xv6 and Unix utilities</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2023/07/14/xv6-book-Chapter1/" title="xv6-book Chapter1">
+                        <span class="hidden-mobile">xv6-book Chapter1</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar" style="margin-left: -1rem">
+    <div id="toc">
+  <p class="toc-header">
+    <i class="iconfont icon-list"></i>
+    <span>目录</span>
+  </p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+
+
+  </aside>
+
+
+    </div>
+  </div>
+</div>
+
+
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+
+
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v" for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    
+
+    
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+  
+    <div class="footer-content">
+       <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+    </div>
+  
+  
+  
+  
+</div>
+
+  </footer>
+
+  <!-- Scripts -->
+  
+  <script  src="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://lib.baomitu.com/jquery/3.6.4/jquery.min.js" ></script>
+<script  src="https://lib.baomitu.com/twitter-bootstrap/4.6.1/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+
+  <script  src="https://lib.baomitu.com/typed.js/2.0.12/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var subtitle = document.getElementById('subtitle');
+      if (!subtitle || !typing) {
+        return;
+      }
+      var text = subtitle.getAttribute('data-typed-text');
+      
+        typing(text);
+      
+    })(window, document);
+  </script>
+
+
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/tocbot/4.20.1/tocbot.min.js', function() {
+    var toc = jQuery('#toc');
+    if (toc.length === 0 || !window.tocbot) { return; }
+    var boardCtn = jQuery('#board-ctn');
+    var boardTop = boardCtn.offset().top;
+
+    window.tocbot.init(Object.assign({
+      tocSelector     : '#toc-body',
+      contentSelector : '.markdown-body',
+      linkClass       : 'tocbot-link',
+      activeLinkClass : 'tocbot-active-link',
+      listClass       : 'tocbot-list',
+      isCollapsedClass: 'tocbot-is-collapsed',
+      collapsibleClass: 'tocbot-is-collapsible',
+      scrollSmooth    : true,
+      includeTitleTags: true,
+      headingsOffset  : -boardTop,
+    }, CONFIG.toc));
+    if (toc.find('.toc-list-item').length > 0) {
+      toc.css('visibility', 'visible');
+    }
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('tocbot' in window) {
+        tocbot.refresh();
+        var toc = jQuery('#toc');
+        if (toc.length === 0 || !tocbot) {
+          return;
+        }
+        if (toc.find('.toc-list-item').length > 0) {
+          toc.css('visibility', 'visible');
+        }
+      }
+    });
+  });
+</script>
+
+
+  <script src=https://lib.baomitu.com/clipboard.js/2.0.11/clipboard.min.js></script>
+
+  <script>Fluid.plugins.codeWidget();</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/anchor-js/4.3.1/anchor.min.js', function() {
+    window.anchors.options = {
+      placement: CONFIG.anchorjs.placement,
+      visible  : CONFIG.anchorjs.visible
+    };
+    if (CONFIG.anchorjs.icon) {
+      window.anchors.options.icon = CONFIG.anchorjs.icon;
+    }
+    var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+    var res = [];
+    for (var item of el) {
+      res.push('.markdown-body > ' + item.trim());
+    }
+    if (CONFIG.anchorjs.placement === 'left') {
+      window.anchors.options.class = 'anchorjs-link-left';
+    }
+    window.anchors.add(res.join(', '));
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('anchors' in window) {
+        anchors.removeAll();
+        var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+        var res = [];
+        for (var item of el) {
+          res.push('.markdown-body > ' + item.trim());
+        }
+        if (CONFIG.anchorjs.placement === 'left') {
+          anchors.options.class = 'anchorjs-link-left';
+        }
+        anchors.add(res.join(', '));
+      }
+    });
+  });
+</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.js', function() {
+    Fluid.plugins.fancyBox();
+  });
+</script>
+
+
+  <script>Fluid.plugins.imageCaption();</script>
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+
+
+<!-- 主题的启动项，将它保持在最底部 -->
+<!-- the boot of the theme, keep it at the bottom -->
+<script  src="/js/boot.js" ></script>
+
+
+  
+
+  <noscript>
+    <div class="noscript-warning">博客在允许 JavaScript 运行的环境下浏览效果更佳</div>
+  </noscript>
+</body>
+</html>
