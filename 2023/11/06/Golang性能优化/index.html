@@ -4,13 +4,17 @@
   <meta charset="utf-8">
   
   
-  <title>Archives: 2023/11 | Cygnus的博客</title>
+  <title>Cygnus的博客</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-  <meta property="og:type" content="website">
+  <meta name="description" content="提供几个性能调优技巧（可以说是在实习时，leader提醒你的）：1、在大切片的基础上新建小切片，记得释放内存，不然大切片的底层数组一直存在2、新建切片，map时，记得预分配内存，避免扩容（本质是较少内存拷贝）。不然相同的代码可能有5倍以上的性能差距3、在进行字符串拼接时，不要使用+,因为字符串在go中是不可变类型，每次使用+都要重新分配内存。如果使用库strings.Builder，底层是byte">
+<meta property="og:type" content="article">
 <meta property="og:title" content="Cygnus的博客">
-<meta property="og:url" content="http://example.com/archives/2023/11/index.html">
+<meta property="og:url" content="http://example.com/2023/11/06/Golang%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96/index.html">
 <meta property="og:site_name" content="Cygnus的博客">
+<meta property="og:description" content="提供几个性能调优技巧（可以说是在实习时，leader提醒你的）：1、在大切片的基础上新建小切片，记得释放内存，不然大切片的底层数组一直存在2、新建切片，map时，记得预分配内存，避免扩容（本质是较少内存拷贝）。不然相同的代码可能有5倍以上的性能差距3、在进行字符串拼接时，不要使用+,因为字符串在go中是不可变类型，每次使用+都要重新分配内存。如果使用库strings.Builder，底层是byte">
 <meta property="og:locale" content="en_US">
+<meta property="article:published_time" content="2023-11-06T08:22:59.450Z">
+<meta property="article:modified_time" content="2023-08-15T09:59:22.602Z">
 <meta property="article:author" content="John Doe">
 <meta name="twitter:card" content="summary">
   
@@ -71,33 +75,33 @@
 </header>
 
       <div class="outer">
-        <section id="main">
-  
-  
-    
-    
-      
-      
-      <section class="archives-wrap">
-        <div class="archive-year-wrap">
-          <a href="/archives/2023" class="archive-year">2023</a>
-        </div>
-        <div class="archives">
-    
-    <article class="archive-article archive-type-post">
-  <div class="archive-article-inner">
-    <header class="archive-article-header">
-      <a href="/2023/11/06/Golang%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96/" class="archive-article-date">
-  <time class="dt-published" datetime="2023-11-06T08:22:59.450Z" itemprop="datePublished">Nov 6</time>
+        <section id="main"><article id="post-Golang性能优化" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2023/11/06/Golang%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96/" class="article-date">
+  <time class="dt-published" datetime="2023-11-06T08:22:59.450Z" itemprop="datePublished">2023-11-06</time>
 </a>
-      
-    </header>
+    
   </div>
+  <div class="article-inner">
+    
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <p>提供几个性能调优技巧（可以说是在实习时，leader提醒你的）：<br>1、在大切片的基础上新建小切片，记得释放内存，不然大切片的底层数组一直存在<br>2、新建切片，map时，记得预分配内存，避免扩容（本质是较少内存拷贝）。不然相同的代码可能有5倍以上的性能差距<br>3、在进行字符串拼接时，不要使用+,因为字符串在go中是不可变类型，每次使用+都要重新分配内存。如果使用库strings.Builder，底层是byte[]，不需要每次拼接都分配内存，性能有80倍以上的差距。<br>4、使用空结构体节省内存</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2023/11/06/Golang%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96/" data-id="clommxhbq0000j8vyhiet10hx" data-title="" class="article-share-link"><span class="fa fa-share">Share</span></a>
+      
+      
+      
+    </footer>
+  </div>
+  
+    
+  
 </article>
-  
-  
-    </div></section>
-  
 
 
 </section>
