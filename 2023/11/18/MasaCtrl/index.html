@@ -16,19 +16,19 @@
   <meta name="author" content="Cygnus">
   <meta name="keywords" content="">
   
-    <meta name="description" content="[2304.08465] MasaCtrl: Tuning-Free Mutual Self-Attention Control for Consistent Image Synthesis and Editing (arxiv.org) 阅读时间：2023-11-17阅读目的：知名的图像编辑算法，提出了一个新颖的观点 Abstract现有的编辑方法要么无法在保持整体纹理和身份的同时实现有效的复杂">
+    <meta name="description" content="[2304.08465] MasaCtrl: Tuning-Free Mutual Self-Attention Control for Consistent Image Synthesis and Editing (arxiv.org) 阅读时间：2023-11-17 阅读目的：知名的图像编辑算法，提出了一个新颖的观点 Abstract 现有的编辑方法要么无法在保持整体纹理和身份的同时实现">
 <meta property="og:type" content="article">
 <meta property="og:title" content="MasaCtrl">
 <meta property="og:url" content="http://example.com/2023/11/18/MasaCtrl/index.html">
 <meta property="og:site_name" content="Cygnus的博客">
-<meta property="og:description" content="[2304.08465] MasaCtrl: Tuning-Free Mutual Self-Attention Control for Consistent Image Synthesis and Editing (arxiv.org) 阅读时间：2023-11-17阅读目的：知名的图像编辑算法，提出了一个新颖的观点 Abstract现有的编辑方法要么无法在保持整体纹理和身份的同时实现有效的复杂">
+<meta property="og:description" content="[2304.08465] MasaCtrl: Tuning-Free Mutual Self-Attention Control for Consistent Image Synthesis and Editing (arxiv.org) 阅读时间：2023-11-17 阅读目的：知名的图像编辑算法，提出了一个新颖的观点 Abstract 现有的编辑方法要么无法在保持整体纹理和身份的同时实现">
 <meta property="og:locale" content="zh_CN">
 <meta property="og:image" content="http://example.com/2023/11/18/MasaCtrl/20231117214339.png">
 <meta property="og:image" content="http://example.com/2023/11/18/MasaCtrl/20231118183614.png">
 <meta property="og:image" content="http://example.com/2023/11/18/MasaCtrl/20231118183956.png">
 <meta property="og:image" content="http://example.com/2023/11/18/MasaCtrl/20231118185145.png">
 <meta property="article:published_time" content="2023-11-18T10:55:11.000Z">
-<meta property="article:modified_time" content="2023-11-18T10:57:28.450Z">
+<meta property="article:modified_time" content="2023-11-20T11:38:40.594Z">
 <meta property="article:author" content="Cygnus">
 <meta property="article:tag" content="图像生成">
 <meta name="twitter:card" content="summary_large_image">
@@ -279,42 +279,32 @@
               <div class="markdown-body">
                 
                 <p><a target="_blank" rel="noopener" href="https://arxiv.org/abs/2304.08465">[2304.08465] MasaCtrl: Tuning-Free Mutual Self-Attention Control for Consistent Image Synthesis and Editing (arxiv.org)</a></p>
-<p>阅读时间：2023-11-17<br>阅读目的：知名的图像编辑算法，提出了一个新颖的观点</p>
-<h2 id="Abstract"><a href="#Abstract" class="headerlink" title="Abstract"></a>Abstract</h2><p>现有的编辑方法要么无法在保持整体纹理和身份的同时实现有效的复杂非刚性编辑，要么需要耗时的微调来捕捉图像特定的外观。</p>
-<p>论文提出了一种无需微调的方法，可以完成复杂的非刚性图像编辑任务，具体来说，</p>
-<ol>
-<li>MasaCtrl将扩散模型中现有的Self-attention转换为mutual self-attention（相互自注意），这样它就可以从源图像中查询相关的局部内容和纹理以获得一致性。</li>
-<li>当前景和背景相似时，图像编辑过程容易发生混淆，因此论文进一步提出了一种mask引导的mutual self-attention。（mask可以从cross-attention中提取）（cross-attention 只有64 * 64怎么提取？）</li>
-</ol>
-<h2 id="Introduction"><a href="#Introduction" class="headerlink" title="Introduction"></a>Introduction</h2><p>现有的编辑方法无法在<strong>保持整体纹理和身份的同时更改姿势和视图</strong>（例如让狗坐下，让鸟张开翅膀），从而导致编辑结果不一致。</p>
-<p>Imagic可以完成这个任务，在进行复杂的非刚性编辑时保留原始特性。但是他需要微调整个T2I模型，然后优化文本embedding，以捕捉每次编辑的特定外观，这显然对于现实应用来说不切实际。</p>
+<p>阅读时间：2023-11-17 阅读目的：知名的图像编辑算法，提出了一个新颖的观点</p>
+<h2 id="abstract">Abstract</h2>
+<p>现有的编辑方法要么无法在保持整体纹理和身份的同时实现有效的复杂编辑，要么需要耗时的微调来捕捉图像特定的外观。</p>
+<p>论文提出了一种无需微调的方法，可以完成复杂的图像编辑任务，具体来说， 1. MasaCtrl将扩散模型中现有的Self-attention转换为mutual self-attention（相互自注意），这样它就可以从源图像中查询相关的局部内容和纹理以获得一致性。 2. 当前景和背景相似时，图像编辑过程容易发生混淆，因此论文进一步提出了一种mask引导的mutual self-attention。（mask可以从cross-attention中提取）（cross-attention 只有64 * 64怎么提取？）</p>
+<h2 id="introduction">Introduction</h2>
+<p>现有的编辑方法无法在<strong>保持整体纹理和身份的同时更改姿势和视图</strong>（例如让狗坐下，让鸟张开翅膀），从而导致编辑结果不一致。</p>
+<p>Imagic可以完成这个任务，在进行复杂的编辑时保留原始特性。但是他需要微调整个T2I模型，然后优化文本embedding，以捕捉每次编辑的特定外观，这显然对于现实应用来说不切实际。</p>
 <p>对于T2I问题，现实生活中存在大量应用场景，要求模型生成多个具有不同视图，但主体相同的图片，例如漫画生成和短视频生成。</p>
-<p>本文提出了一种新方法，解决的核心问题是：如何在不微调的情况下进行复杂的非刚性编辑，同时让编辑前后主体身份保持一致（感觉视频领域也可以用上？）</p>
-<p>具体来说：</p>
-<ol>
-<li>将原本T2I的self-attention替换为mutual self-attention，这样就可以通过从源图像的query中查询相关的局部结构和纹理特征以获得一致性（<strong>解决了非刚性编辑和图像生成一致性的问题</strong>）<ul>
-<li>先对real image进行DDIM inversion，得到从源图像到真实图像的扩散过程（DP1）</li>
-<li>再在成新图像（或编辑现有图像）的扩散过程中（DP2），使用DP2中self-attention的Q来查询DP1中self-attention的K和V</li>
-</ul>
-</li>
-<li>但是如果直接应用1.中的方法，会生成几乎与源图像相同的图像，并且不能符合target prompt。因此在应用mutual self-attention时，还需要注意控制去噪步长和选择具体的Unet层。</li>
-<li>以上方法可以很好的应用在前景和背景不纠缠的图像上，但在前景背景相似时（例如颜色和图案相似），mutual self-attention会混淆前景背景。因此还需要进一步使用交叉注意力来提取与图像中的主要对象相关联的mask，用mask来分离前景背景，并限制前景特征仅Query源图前景，背景特征仅Query背景。</li>
-</ol>
-<h2 id="Preliminaries"><a href="#Preliminaries" class="headerlink" title="Preliminaries"></a>Preliminaries</h2><p><img src="20231117214339.png" srcset="/img/loading.gif" lazyload alt="整体框架图"></p>
-<h4 id="mutual-self-attention"><a href="#mutual-self-attention" class="headerlink" title="mutual self-attention"></a>mutual self-attention</h4><p>方法其实非常简单：<br><img src="20231118183614.png" srcset="/img/loading.gif" lazyload alt="细节图"><br>既然图像编辑的任务，是在保留原图身份的基础上进行运动。那么在生成图片时，可以直接去原图查询（query）相关特征，<strong>即：在特定的layer和特定的T下，使用原图的K和V</strong>。</p>
-<p>具体使用的层数如下，按照S=4，L=10的设置。<br><img src="20231118183956.png" srcset="/img/loading.gif" lazyload alt></p>
-<h4 id="Mask-Guided-Mutual-Self-Attention"><a href="#Mask-Guided-Mutual-Self-Attention" class="headerlink" title="Mask-Guided Mutual Self-Attention"></a>Mask-Guided Mutual Self-Attention</h4><p>但是上述的方法无法分辨前景和背景，P2P告诉我们，可以利用语义cross-attention来创建mask区分源图像和目标图像中的前景背景</p>
+<p>本文提出了一种新方法，解决的核心问题是：如何在不微调的情况下进行复杂的编辑，同时让编辑前后主体身份保持一致（感觉视频领域也可以用上？）</p>
+<p>具体来说： 1. 将原本T2I的self-attention替换为mutual self-attention，这样就可以通过从源图像的query中查询相关的局部结构和纹理特征以获得一致性（<strong>解决了图像编辑和图像生成一致性的问题</strong>） - 先对real image进行DDIM inversion，得到从源图像到真实图像的扩散过程（DP1） - 再在成新图像（或编辑现有图像）的扩散过程中（DP2），使用DP2中self-attention的Q来查询DP1中self-attention的K和V 2. 但是如果直接应用1.中的方法，会生成几乎与源图像相同的图像，并且不能符合target prompt。因此在应用mutual self-attention时，还需要注意控制去噪步长和选择具体的Unet层。 3. 以上方法可以很好的应用在前景和背景不纠缠的图像上，但在前景背景相似时（例如颜色和图案相似），mutual self-attention会混淆前景背景。因此还需要进一步使用交叉注意力来提取与图像中的主要对象相关联的mask，用mask来分离前景背景，并限制前景特征仅Query源图前景，背景特征仅Query背景。</p>
+<h2 id="preliminaries">Preliminaries</h2>
+<figure>
+<img src="20231117214339.png" srcset="/img/loading.gif" lazyload alt="整体框架图"><figcaption>整体框架图</figcaption>
+</figure>
+<h4 id="mutual-self-attention">mutual self-attention</h4>
+<p>方法其实非常简单： <img src="20231118183614.png" srcset="/img/loading.gif" lazyload alt="细节图"> 既然图像编辑的任务，是在保留原图身份的基础上进行运动。那么在生成图片时，可以直接去原图查询（query）相关特征，<strong>即：在特定的layer和特定的T下，使用原图的K和V</strong>。</p>
+<p>具体使用的层数如下，按照S=4，L=10的设置。 <img src="20231118183956.png" srcset="/img/loading.gif" lazyload> #### Mask-Guided Mutual Self-Attention</p>
+<p>但是上述的方法无法分辨前景和背景，P2P告诉我们，可以利用语义cross-attention来创建mask区分源图像和目标图像中的前景背景</p>
 <p>先以16×16的空间分辨率对所有head和layer的cross-attention map进行平均，得到N个cross-attention map。N表示文本token的数量。</p>
 <p>这个过程可以获得前景对象相关token的平均cross-attention map，进而获得了前景mask。有了mask就可以限制生成图像仅从原图像的主体区域query相关信息</p>
-<p><img src="20231118185145.png" srcset="/img/loading.gif" lazyload alt></p>
-<h2 id="我的理解"><a href="#我的理解" class="headerlink" title="我的理解"></a>我的理解</h2><p>文章开头提出问题：无法在保持整体纹理和身份的同时更改姿势和视图</p>
+<p><img src="20231118185145.png" srcset="/img/loading.gif" lazyload></p>
+<h2 id="我的理解">我的理解</h2>
+<p>文章开头提出问题：无法在保持整体纹理和身份的同时更改姿势和视图</p>
 <p>随后抛出应用场景，证明用途：漫画、生成短视频等</p>
 <p>再提出解决方案：用mutual self-attention来保证图像主体身份的同时，改变动作。</p>
-<p>可以扩展思考的内容主要有两条：</p>
-<ol>
-<li>mutual self-attention可在<strong>保持特色、纹理和身份的同时改变姿态、视图、结构</strong>。似乎也可以用在短视频领域，因为短视频正面临编辑对象闪烁的问题。它（imagic + mutual self-attention 可能可以完成一个简单的动作生成）</li>
-<li>使用cross-attention map来提取前景背景的掩模，完成前景背景分离（可以用于解耦，联想到ACR中的背景前景选取内容）</li>
-</ol>
+<p>可以扩展思考的内容主要有两条： 1. mutual self-attention可在<strong>保持特色、纹理和身份的同时改变姿态、视图、结构</strong>。似乎也可以用在短视频领域，因为短视频正面临编辑对象闪烁的问题。它（imagic + mutual self-attention 可能可以完成一个简单的动作生成） 2. 使用cross-attention map来提取前景背景的掩模，完成前景背景分离（可以用于解耦，联想到ACR中的背景前景选取内容）</p>
 
                 
               </div>
