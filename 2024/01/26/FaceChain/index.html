@@ -16,12 +16,12 @@
   <meta name="author" content="Cygnus">
   <meta name="keywords" content="">
   
-    <meta name="description" content="简述：论文主要是提出了一个框架，解决换脸的问题，即用户上传多张自己的个性化照片，让模型来完善其他细节（例如衣服，背景）。它通过集成了多个模型搭建了一套完整的脸部ID保留和处理流程感想：这篇论文兼顾了学术创新和工业应用，非常值得参考  整个流程是用户上传照片，然后：  预处理（用户上传的图像可能不符合要求）  （1）检测图像的方向，保证图像的角度正确，模型地址  （2）图像的方向正确后，人脸的方向可">
+    <meta name="description" content="简述：论文主要是提出了一个框架，解决换脸的问题，即用户上传多张自己的个性化照片，让模型来完善其他细节（例如衣服，背景）。它通过集成了多个模型搭建了一套完整的脸部ID保留和处理流程 感想：这篇论文兼顾了学术创新和工业应用，非常值得参考  整个流程是用户上传照片，然后： 1. 预处理（用户上传的图像可能不符合要求） （1）检测图像的方向，保证图像的角度正确，模型地址 （2）图像的方向正确后，人脸的">
 <meta property="og:type" content="article">
 <meta property="og:title" content="FaceChain">
 <meta property="og:url" content="http://example.com/2024/01/26/FaceChain/index.html">
 <meta property="og:site_name" content="Cygnus的博客">
-<meta property="og:description" content="简述：论文主要是提出了一个框架，解决换脸的问题，即用户上传多张自己的个性化照片，让模型来完善其他细节（例如衣服，背景）。它通过集成了多个模型搭建了一套完整的脸部ID保留和处理流程感想：这篇论文兼顾了学术创新和工业应用，非常值得参考  整个流程是用户上传照片，然后：  预处理（用户上传的图像可能不符合要求）  （1）检测图像的方向，保证图像的角度正确，模型地址  （2）图像的方向正确后，人脸的方向可">
+<meta property="og:description" content="简述：论文主要是提出了一个框架，解决换脸的问题，即用户上传多张自己的个性化照片，让模型来完善其他细节（例如衣服，背景）。它通过集成了多个模型搭建了一套完整的脸部ID保留和处理流程 感想：这篇论文兼顾了学术创新和工业应用，非常值得参考  整个流程是用户上传照片，然后： 1. 预处理（用户上传的图像可能不符合要求） （1）检测图像的方向，保证图像的角度正确，模型地址 （2）图像的方向正确后，人脸的">
 <meta property="og:locale" content="zh_CN">
 <meta property="og:image" content="http://example.com/2024/01/26/FaceChain/Pasted%20image%2020240126132705.png">
 <meta property="og:image" content="http://example.com/2024/01/26/FaceChain/Pasted%20image%2020240126152208.png">
@@ -277,31 +277,30 @@
             
               <div class="markdown-body">
                 
-                <p>简述：论文主要是提出了一个框架，解决换脸的问题，即用户上传多张自己的个性化照片，让模型来完善其他细节（例如衣服，背景）。它通过集成了多个模型搭建了一套完整的脸部ID保留和处理流程<br>感想：这篇论文兼顾了学术创新和工业应用，非常值得参考</p>
-<p><img src="Pasted image 20240126132705.png" srcset="/img/loading.gif" lazyload alt></p>
-<p>整个流程是用户上传照片，然后：</p>
-<ol>
-<li><p>预处理（用户上传的图像可能不符合要求）<br>  （1）检测图像的方向，保证图像的角度正确，<a target="_blank" rel="noopener" href="https://modelscope.cn/models/Cherrytest/rot_bgr">模型地址</a><br>  （2）图像的方向正确后，人脸的方向可能不正确，使用<a href="https://modelscope. cn/models/damo/cv_ddsar_face-detection_ iclr23-damofd">DamoFD</a>（一种人脸检测器）获得多个图像人脸的检测结果，然后使用最小二乘法，计算标准人脸模板的坐标和旋转矩阵，旋转图像<br>  （3）使用DamoFD获得人脸框，再使用<a target="_blank" rel="noopener" href="https://modelscope.cn/models/ damo/cv_resnet101_image-multiple-humanparsing">M2FP</a>（Masked-attention Mask Transformer model for human parsing）裁剪人脸并缩放大小，控制在图像的0.35-0.45倍，<br>  （4）使用<a target="_blank" rel="noopener" href="https://modelscope.cn/models/ damo/cv_unet_skin-retouching">ABPN</a>（自适应混合金字塔网络）进行皮肤修饰</p>
-</li>
-<li><p>给上传的图片打标签（训练lora时需要对应的文本标签，因此标签必须合适）<br>  （1）将人像输入<a target="_blank" rel="noopener" href="https://github.com/KichangKim/DeepDanbooru">DeepDanbooru</a>（一个文本注释模型），可以得到初步的tag，然后删掉一部分人类身份相关的标签，比如嘴唇，眼睛耳朵等（<strong>这些特征需要通过参考图像引入，不能通过文本，否则身份一致性难保持</strong>）<br>  （2）再通过<a href="https:// modelscope . cn / models / damo / cv _ resnet34 _ face-attribute-recognition_fairface">FairFace</a>（人脸属性模型），预测每张图像的性别和年龄，根据所在区间确定关键词。<br>  <img src="Pasted image 20240126152208.png" srcset="/img/loading.gif" lazyload alt></p>
-</li>
-<li><p>训练方法<br>  分别训练一个face lora和一个style lora，前者用个性化肖像训练，后者用大量照片同类型照片训练，例如证件照、艺术照等，确定生成图像的风格</p>
-</li>
-<li><p>推理过程<br>  （1）将face LoRA和style LoRA的权重融合到Stable Diffusion模型中，权重分别是0.25和1.0，生成多张个性化的图片<br>  （2）这些图片可能还是不够精确，因此通过人脸质量评估模型<a target="_blank" rel="noopener" href="https://www.modelscope.cn/models/damo/cv_manual_face-quality-assessment_fqa">FQA</a>（Face Quality Assessment）从训练数据重筛选出一个质量最好的人脸图像<br>  （3）使用<a target="_blank" rel="noopener" href="https://www.modelscope.cn/models/damo/cv_unetimage-face-fusion_damo">人脸融合模型</a>进一步改善面部细节。使得输出肖像能够保留主要的外观特征，同时显示更精致的面部细节生成（即生成的图像和训练图像融合到一起）<br>  （4）采用<a target="_blank" rel="noopener" href="https://www.modelscope.cn/models/damo/cv_ir_face-recognition-ood_rts">随机温度缩放</a>（RTS）（一种针对分布内和分布外样本的鲁棒人脸识别模型）来计算面部相似度。选择面部相似度高的肖像作为输出</p>
-</li>
+                <p>简述：论文主要是提出了一个框架，解决换脸的问题，即用户上传多张自己的个性化照片，让模型来完善其他细节（例如衣服，背景）。它通过集成了多个模型搭建了一套完整的脸部ID保留和处理流程 感想：这篇论文兼顾了学术创新和工业应用，非常值得参考</p>
+<p><img src="Pasted%20image%2020240126132705.png" srcset="/img/loading.gif" lazyload></p>
+<p>整个流程是用户上传照片，然后： 1. 预处理（用户上传的图像可能不符合要求） （1）检测图像的方向，保证图像的角度正确，<a target="_blank" rel="noopener" href="https://modelscope.cn/models/Cherrytest/rot_bgr">模型地址</a> （2）图像的方向正确后，人脸的方向可能不正确，使用<a href="https://modelscope.%20cn/models/damo/cv_ddsar_face-detection_%20iclr23-damofd">DamoFD</a>（一种人脸检测器）获得多个图像人脸的检测结果，然后使用最小二乘法，计算标准人脸模板的坐标和旋转矩阵，旋转图像 （3）使用DamoFD获得人脸框，再使用<a target="_blank" rel="noopener" href="https://modelscope.cn/models/%20damo/cv_resnet101_image-multiple-humanparsing">M2FP</a>（Masked-attention Mask Transformer model for human parsing）裁剪人脸并缩放大小，控制在图像的0.35-0.45倍， （4）使用<a target="_blank" rel="noopener" href="https://modelscope.cn/models/%20damo/cv_unet_skin-retouching">ABPN</a>（自适应混合金字塔网络）进行皮肤修饰</p>
+<ol type="1">
+<li><p>给上传的图片打标签（训练lora时需要对应的文本标签，因此标签必须合适） （1）将人像输入<a target="_blank" rel="noopener" href="https://github.com/KichangKim/DeepDanbooru">DeepDanbooru</a>（一个文本注释模型），可以得到初步的tag，然后删掉一部分人类身份相关的标签，比如嘴唇，眼睛耳朵等（<strong>这些特征需要通过参考图像引入，不能通过文本，否则身份一致性难保持</strong>） （2）再通过<a href="https://%20modelscope%20.%20cn%20/%20models%20/%20damo%20/%20cv%20_%20resnet34%20_%20face-attribute-recognition_fairface">FairFace</a>（人脸属性模型），预测每张图像的性别和年龄，根据所在区间确定关键词。 <img src="Pasted%20image%2020240126152208.png" srcset="/img/loading.gif" lazyload></p></li>
+<li><p>训练方法 分别训练一个face lora和一个style lora，前者用个性化肖像训练，后者用大量照片同类型照片训练，例如证件照、艺术照等，确定生成图像的风格</p></li>
+<li><p>推理过程 （1）将face LoRA和style LoRA的权重融合到Stable Diffusion模型中，权重分别是0.25和1.0，生成多张个性化的图片 （2）这些图片可能还是不够精确，因此通过人脸质量评估模型<a target="_blank" rel="noopener" href="https://www.modelscope.cn/models/damo/cv_manual_face-quality-assessment_fqa">FQA</a>（Face Quality Assessment）从训练数据重筛选出一个质量最好的人脸图像 （3）使用<a target="_blank" rel="noopener" href="https://www.modelscope.cn/models/damo/cv_unetimage-face-fusion_damo">人脸融合模型</a>进一步改善面部细节。使得输出肖像能够保留主要的外观特征，同时显示更精致的面部细节生成（即生成的图像和训练图像融合到一起） （4）采用<a target="_blank" rel="noopener" href="https://www.modelscope.cn/models/damo/cv_ir_face-recognition-ood_rts">随机温度缩放</a>（RTS）（一种针对分布内和分布外样本的鲁棒人脸识别模型）来计算面部相似度。选择面部相似度高的肖像作为输出</p></li>
 </ol>
-<h2 id="inpainting"><a href="#inpainting" class="headerlink" title="inpainting"></a>inpainting</h2><p>利用专门针对独特面部 ID 进行训练的 LoRA 模型，再加上集成的风格背景，可以生成具有高 ID 保真度的相关肖像照片。但是，在现实场景和应用中，经常出现用户已经确定了他们满意的图像的情况——这些图像具有精心设计的构图、灯光和背景布置。在这种情况下，用户的要求是自然地用特定的ID替换所选图像中的人脸。为了解决这个问题，论文设计了一个基于SD的修复框架。这允许基于指定的模板图像自然地重绘指定的面部ID。</p>
-<p>涉及到这种人脸替换问题，最容易想到的方法就是使用controlnet执行扩散完成修复，然而这样做会引发问题：<br>（1）原始模板人脸和指定ID的人脸不兼容，使用canny得到的边缘进行扩散会导致人脸结构改变<br>（2）重绘的区域和原始图像的衔接出可能出现断层（不一致）<br>（3）在扩散过程结合 ControlNet、LoRA 模型和模板的图像隐空间等多个控制会产生不利影响，尤其是在身份ID的保留方面，因此需要对ID进行更多的控制</p>
-<p>为了解决问题，提出了一个二级修复流程：<br><img src="Pasted image 20240126161225.png" srcset="/img/loading.gif" lazyload alt></p>
-<p>流程1：<br>（1）面部变形算法来生成 68 个面部标志，作为OpenPose controlnet的输入<br>（2）生成一张保留了ID的图像<br>（3）计算仿射变换矩阵 M，将生成的面部标志与原始参考的面部标志完美对齐<br>矩阵M表示生成人脸和参考人脸之间的变形过程，解决了参考图像和ID面部特征点不匹配的问题</p>
-<p>流程2：<br>（1）使用M2FP human parsing model，生成面部mask并适当扩展<br>（2）OpenPose controlnet（使用上面变形后得到的面部特征点）（保留面部结构） + Canny controlnet（保留面部之外区域的结构） + 较大的inpainting strength（0.65）（保证重绘得到的图片仍然是指定ID） = 实现人脸的和谐替换</p>
-<h2 id="FaceChain在虚拟试衣上的应用"><a href="#FaceChain在虚拟试衣上的应用" class="headerlink" title="FaceChain在虚拟试衣上的应用"></a>FaceChain在虚拟试衣上的应用</h2><p>给定待试穿服装的真实或虚拟模特图像，以及经过训练的人脸LoRA模型，FaceChain可以重新绘制服装外部的区域，包括人物和背景，以获得虚拟试穿结果。</p>
+<h2 id="inpainting">inpainting</h2>
+<p>利用专门针对独特面部 ID 进行训练的 LoRA 模型，再加上集成的风格背景，可以生成具有高 ID 保真度的相关肖像照片。但是，在现实场景和应用中，经常出现用户已经确定了他们满意的图像的情况——这些图像具有精心设计的构图、灯光和背景布置。在这种情况下，用户的要求是自然地用特定的ID替换所选图像中的人脸。为了解决这个问题，论文设计了一个基于SD的修复框架。这允许基于指定的模板图像自然地重绘指定的面部ID。</p>
+<p>涉及到这种人脸替换问题，最容易想到的方法就是使用controlnet执行扩散完成修复，然而这样做会引发问题： （1）原始模板人脸和指定ID的人脸不兼容，使用canny得到的边缘进行扩散会导致人脸结构改变 （2）重绘的区域和原始图像的衔接出可能出现断层（不一致） （3）在扩散过程结合 ControlNet、LoRA 模型和模板的图像隐空间等多个控制会产生不利影响，尤其是在身份ID的保留方面，因此需要对ID进行更多的控制</p>
+<p>为了解决问题，提出了一个二级修复流程： <img src="Pasted%20image%2020240126161225.png" srcset="/img/loading.gif" lazyload></p>
+<p>流程1： （1）面部变形算法来生成 68 个面部标志，作为OpenPose controlnet的输入 （2）生成一张保留了ID的图像 （3）计算仿射变换矩阵 M，将生成的面部标志与原始参考的面部标志完美对齐 矩阵M表示生成人脸和参考人脸之间的变形过程，解决了参考图像和ID面部特征点不匹配的问题</p>
+<p>流程2： （1）使用M2FP human parsing model，生成面部mask并适当扩展 （2）OpenPose controlnet（使用上面变形后得到的面部特征点）（保留面部结构） + Canny controlnet（保留面部之外区域的结构） + 较大的inpainting strength（0.65）（保证重绘得到的图片仍然是指定ID） = 实现人脸的和谐替换</p>
+<h2 id="facechain在虚拟试衣上的应用">FaceChain在虚拟试衣上的应用</h2>
+<p>给定待试穿服装的真实或虚拟模特图像，以及经过训练的人脸LoRA模型，FaceChain可以重新绘制服装外部的区域，包括人物和背景，以获得虚拟试穿结果。</p>
 <p>重绘过程也是基于SD的修复过程，和inpainting很相似。然而，由于这两个任务的要求不同，可以使用不同的空间条件控制。由于需要重新绘制衣服外部的所有区域而不仅仅是面部区域，因此面部标志与保留部分之间的交互要低得多。此外，服装外部区域的图像内容可能对图像生成有害，尤其是当我们尝试将输入模板的虚拟模型更改为真实模型时。因此，我们在OpenPose-ControlNet中不使用扭曲的人脸标志，并将修复强度调整为1.0以避免输入模板的图像潜在的影响。然后，在虚拟试穿中生成具有和谐身体姿势的肖像极其重要，尤其是手部的详细姿势，因为大多数现有的SD模型无法生成令人满意的手部姿势。</p>
-<p>为了解决问题<br>（1）OpenPoseControlNet 使用全身姿势蒸馏（DWPose）估计器提取的骨骼和手部姿势，以获得更准确的手势<br>（2）Depth-ControlNet 在手部区域使用深度估计（论文Towards robust monocular depth estimation: Mixing datasets for zero-shot cross-dataset transfer） 以获取手部的 3D 细节<br>（3） Canny-ControlNet 使用身体区域的 Canny 边缘来实现更和谐的身体姿势。<br>（4）背景用提示词来控制<br>生成的虚拟试穿图像可以放入inpainting pipeline中，以进一步提高身份保留效果</p>
-<h2 id="让证件照说话"><a href="#让证件照说话" class="headerlink" title="让证件照说话"></a>让证件照说话</h2><p>用户选择一张人脸图像，然后用户提供一个音频片段，FaceChain使用它们输出说话的视频</p>
+<p>为了解决问题 （1）OpenPoseControlNet 使用全身姿势蒸馏（DWPose）估计器提取的骨骼和手部姿势，以获得更准确的手势 （2）Depth-ControlNet 在手部区域使用深度估计（论文Towards robust monocular depth estimation: Mixing datasets for zero-shot cross-dataset transfer） 以获取手部的 3D 细节 （3） Canny-ControlNet 使用身体区域的 Canny 边缘来实现更和谐的身体姿势。 （4）背景用提示词来控制 生成的虚拟试穿图像可以放入inpainting pipeline中，以进一步提高身份保留效果</p>
+<h2 id="让证件照说话">让证件照说话</h2>
+<p>用户选择一张人脸图像，然后用户提供一个音频片段，FaceChain使用它们输出说话的视频</p>
 <p>论文选择sadtalker作为基模型，因为wav2lip和video-retalking只能改变面部的嘴唇，而SadTalker提出的PoseVAE和ExpNet可以改变头部姿势和面部分别表达，其中头部姿势可以进行控制，例如眨眼频率。</p>
-<p>由于SadTalker的输入和输出分辨率为256或512，如果原始输入图像中的人脸分辨率比较大，或者用户只是想让整体分辨率更高，论文也支持使用GFPGAN作为后处理模块，可以将视频分辨率提高一倍。至于音频剪辑，支持三种选项来提供：(i) TTS 合成、(ii) 麦克风录音和 (iii) 本地文件上传。至于TTS合成，我们使用Microsoft Edge的API，因为它支持多语言混合输入，并且支持多语言合成，这使得FaceChain对全球用户更加友好<br><img src="Pasted image 20240126164700.png" srcset="/img/loading.gif" lazyload alt></p>
-<h2 id="未来值得探索的方向"><a href="#未来值得探索的方向" class="headerlink" title="未来值得探索的方向"></a>未来值得探索的方向</h2><p>（1）能够处理不同年龄和性别的多个主题的个性化生成框架</p>
+<p>由于SadTalker的输入和输出分辨率为256或512，如果原始输入图像中的人脸分辨率比较大，或者用户只是想让整体分辨率更高，论文也支持使用GFPGAN作为后处理模块，可以将视频分辨率提高一倍。至于音频剪辑，支持三种选项来提供：(i) TTS 合成、(ii) 麦克风录音和 (iii) 本地文件上传。至于TTS合成，我们使用Microsoft Edge的API，因为它支持多语言混合输入，并且支持多语言合成，这使得FaceChain对全球用户更加友好 <img src="Pasted%20image%2020240126164700.png" srcset="/img/loading.gif" lazyload></p>
+<h2 id="未来值得探索的方向">未来值得探索的方向</h2>
+<p>（1）能够处理不同年龄和性别的多个主题的个性化生成框架</p>
 <p>（2）改进数据处理机制以完美地保留身材，这将需要更多样化的训练数据</p>
 <p>（3）<strong>支持模型融合过程中风格和面部 LoRA 模型的自适应权重选择</strong></p>
 <p>（4）将不同的风格信息编码为统一的模型，可以通过特定的触发提示激活</p>
