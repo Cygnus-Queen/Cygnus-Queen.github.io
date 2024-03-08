@@ -24,7 +24,7 @@
 <meta property="og:description" content="Chapter4 Traps and System Calls Trap是一类特殊事件，他们可以打断当前指令流的执行： - 系统调用。执行RISC-V的ecall指令时 - 异常。用户或内核指令可能进行了一些非法操作，例如除以0或者使用无效的虚拟地址时 - 设备中断。当一个设备因某些原因（如磁盘的读&#x2F;写工作完成）需要CPU及时处理时 无论是哪一种，都涉及到了操作系统从用户态到内核态的转换。通常">
 <meta property="og:locale" content="zh_CN">
 <meta property="article:published_time" content="2024-03-07T14:42:53.000Z">
-<meta property="article:modified_time" content="2024-03-08T02:18:34.077Z">
+<meta property="article:modified_time" content="2024-03-08T02:24:54.417Z">
 <meta property="article:author" content="Cygnus">
 <meta property="article:tag" content="xv6">
 <meta name="twitter:card" content="summary_large_image">
@@ -284,28 +284,21 @@
 <p>trap最好是对用户进程<strong>透明</strong>的，即保存和恢复相关寄存器应该由内核负责而不让用户来操心，从trap返回时也应该回到进程指令流被中止的位置，用户进程应该感受不到trap的发生</p>
 <p>它的整个处理流程，以xv6为例，应该经过以下几个函数：</p>
 <ul>
-<li><strong>uservec</strong>：位于trampoline.S的前半部分汇编代码，用于做一些陷入内核之前的准备工作，例如保存用户空间下的一系列寄存器，加载内核栈、内核页表等设置，然后跳转到usertrap。这一部分，我们称为<strong>trap vector</strong>。</li>
-<li></li>
-<li><strong>usertrap</strong>：位于内核中的一段C代码，判断引起trap的事件类型，并决定如何处理该trap，如跳转到系统调用函数、设备驱动程序等。我们一般也称其为<strong>trap handler</strong>。</li>
-<li></li>
-<li><strong>usertrapret</strong>：位于内核中的另一段C代码，trap被处理完之后，就会跳转到usertrapret，保存内核栈、内核页表等内核相关信息，进行一些设置，然后跳转到userret。</li>
-<li></li>
-<li><strong>userret</strong>：位于trampoline.S的后半部分汇编代码，用于做一些返回用户空间的恢复工作，恢复之前保存的用户空间寄存器，最后返回用户空间，恢复用户进程指令流的执行。</li>
+<li><p><strong>uservec</strong>：位于trampoline.S的前半部分汇编代码，用于做一些陷入内核之前的准备工作，例如保存用户空间下的一系列寄存器，加载内核栈、内核页表等设置，然后跳转到usertrap。这一部分，我们称为<strong>trap vector</strong>。</p></li>
+<li><p><strong>usertrap</strong>：位于内核中的一段C代码，判断引起trap的事件类型，并决定如何处理该trap，如跳转到系统调用函数、设备驱动程序等。我们一般也称其为<strong>trap handler</strong>。</p></li>
+<li><p><strong>usertrapret</strong>：位于内核中的另一段C代码，trap被处理完之后，就会跳转到usertrapret，保存内核栈、内核页表等内核相关信息，进行一些设置，然后跳转到userret。</p></li>
+<li><p><strong>userret</strong>：位于trampoline.S的后半部分汇编代码，用于做一些返回用户空间的恢复工作，恢复之前保存的用户空间寄存器，最后返回用户空间，恢复用户进程指令流的执行。</p></li>
 </ul>
 <p>问题：为什么我们没有将uservec和usertrap两个代码路径合并在一起？ 答案：因为用两段代码分别负责<strong>保存</strong>和<strong>处理</strong>的工作，可以区分以下三种不同的情况：来自<strong>用户空间的trap</strong>，来自<strong>内核空间的trap</strong>和<strong>计时器中断</strong>。进而采取不同的处理方法</p>
 <h2 id="trap-寄存器">Trap 寄存器</h2>
 <p>之前介绍操作系统的时候提到过，内核态到用户态的转换其实是通过CPU特权等级实现的。其实每个CPU都有一些<strong>控制寄存器</strong>的集合，内核通过写入这些寄存器（只有Super模式才能写入这些寄存器）告诉CPU如何处理这次trap</p>
 <p>以下寄存器都以S开头，是Super模式下的寄存器，一些m开头的寄存器只有机器模式才能访问：</p>
 <ul>
-<li><strong>stvec</strong>：内核将trap handler写到stvec中。当trap发生时，RISC-V就会跳转到stvec中的地址，准备处理trap。换句话说，这个寄存器就是保存发生trap后CPU执行的第一个函数的地址。在xv6中因为uservec和usertrap被分开了，因此写入stvec的是先执行的uservec或者kernelvec，而不是usertrap。可以认为uservec其实是usertrap的一部分</li>
-<li></li>
-<li><strong>sepc</strong>：当trap发生时，会执行stvec中保存的内容，其实也就是将PC寄存器重置为stvec的内容，为了保存之前进程的运行状态，RISC-V会<strong>将当前pc的值保存在sepc中</strong>。稍后在userret中，sret指令将sepc的值复制到pc中，内核可以设置sepc来控制sret返回到哪里</li>
-<li></li>
-<li><strong>scause</strong>：RISC-V在这里存放一个数字，代表引发trap的原因</li>
-<li></li>
-<li><strong>sscratch</strong>：一个特别的寄存器。在用户空间发生trap，并进入到uservec之后，sscratch就装载着指向进程<strong>trapframe</strong>结构体的指针（进程的trapframe结构体，在进程被创建，并在userret指令返回时，就已经被内核设置好并且放置到sscratch中）。RISC-V还提供了一条<strong>交换指令</strong>（csrrw），可以将任意寄存器与sscratch进行值的交换。sscratch的这些特性，便于在uservec中进行一些寄存器的保存、恢复工作。</li>
-<li></li>
-<li><strong>sstatus</strong>：状态寄存器。位于该寄存器中的<strong>SIE</strong>位可以控制设备中断是否开启，如果SIE被清0，RISC-V会推迟期间的设备中断，直到SIE被再次置位；<strong>SPP</strong>位可以指示一个trap是来自用户模式下还是监管者模式下的，因此也决定了sret要返回到哪个模式下。<strong>因为操作系统不能在保存trap现场时再发生一次trap，这样会导致错误。因此需要利用sstatus在trap发生开始时关闭中断，再现场保存完成后再开启。</strong></li>
+<li><p><strong>stvec</strong>：内核将trap handler写到stvec中。当trap发生时，RISC-V就会跳转到stvec中的地址，准备处理trap。换句话说，这个寄存器就是保存发生trap后CPU执行的第一个函数的地址。在xv6中因为uservec和usertrap被分开了，因此写入stvec的是先执行的uservec或者kernelvec，而不是usertrap。可以认为uservec其实是usertrap的一部分</p></li>
+<li><p><strong>sepc</strong>：当trap发生时，会执行stvec中保存的内容，其实也就是将PC寄存器重置为stvec的内容，为了保存之前进程的运行状态，RISC-V会<strong>将当前pc的值保存在sepc中</strong>。稍后在userret中，sret指令将sepc的值复制到pc中，内核可以设置sepc来控制sret返回到哪里</p></li>
+<li><p><strong>scause</strong>：RISC-V在这里存放一个数字，代表引发trap的原因</p></li>
+<li><p><strong>sscratch</strong>：一个特别的寄存器。在用户空间发生trap，并进入到uservec之后，sscratch就装载着指向进程<strong>trapframe</strong>结构体的指针（进程的trapframe结构体，在进程被创建，并在userret指令返回时，就已经被内核设置好并且放置到sscratch中）。RISC-V还提供了一条<strong>交换指令</strong>（csrrw），可以将任意寄存器与sscratch进行值的交换。sscratch的这些特性，便于在uservec中进行一些寄存器的保存、恢复工作。</p></li>
+<li><p><strong>sstatus</strong>：状态寄存器。位于该寄存器中的<strong>SIE</strong>位可以控制设备中断是否开启，如果SIE被清0，RISC-V会推迟期间的设备中断，直到SIE被再次置位；<strong>SPP</strong>位可以指示一个trap是来自用户模式下还是监管者模式下的，因此也决定了sret要返回到哪个模式下。<strong>因为操作系统不能在保存trap现场时再发生一次trap，这样会导致错误。因此需要利用sstatus在trap发生开始时关闭中断，再现场保存完成后再开启。</strong></p></li>
 </ul>
 <p>我们知道，因为CPU并不知道自己正在做什么，只是按照流水线的形式一条条的执行指令而已。所以操作系统的内核态用户态转换，最核心的部分就是这些寄存器的变换，他们引导着整个trap流程。如果不理解它们，对trap的理解将会停留在记忆层面，没有实感</p>
 <p>整个中断处理过程中，使用寄存器的流程： （1）如果造成trap的是设备中断，将sstatus中的SIE位清0，然后跳过以下步骤。</p>
