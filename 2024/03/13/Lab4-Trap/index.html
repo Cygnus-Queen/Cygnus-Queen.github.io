@@ -1,0 +1,682 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=auto>
+
+
+
+<head>
+  <meta charset="UTF-8">
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/fluid.png">
+  <link rel="icon" href="/img/fluid.png">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="author" content="Cygnus">
+  <meta name="keywords" content="">
+  
+    <meta name="description" content="课程地址 本次实验是需要完成trap相关的实验内容，主要是加深对trap的理解，理论知识包含在 [xv6-book-Chapter4 - Cygnus的博客 (cygnus-queen.github.io) Alarm 其实这是一个相当有趣的实验。在完成一些项目时，我们总是需要对计算资源的使用情况进行分析，其中CPU资源的利用率是非常重要的分析指标。经常可能会有进程占据了过多的CPU资源长时">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Lab4-Trap">
+<meta property="og:url" content="http://example.com/2024/03/13/Lab4-Trap/index.html">
+<meta property="og:site_name" content="Cygnus的博客">
+<meta property="og:description" content="课程地址 本次实验是需要完成trap相关的实验内容，主要是加深对trap的理解，理论知识包含在 [xv6-book-Chapter4 - Cygnus的博客 (cygnus-queen.github.io) Alarm 其实这是一个相当有趣的实验。在完成一些项目时，我们总是需要对计算资源的使用情况进行分析，其中CPU资源的利用率是非常重要的分析指标。经常可能会有进程占据了过多的CPU资源长时">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://example.com/2024/03/13/Lab4-Trap/Pasted%20image%2020240313123317.png">
+<meta property="article:published_time" content="2024-03-13T06:32:35.000Z">
+<meta property="article:modified_time" content="2024-03-13T06:34:01.181Z">
+<meta property="article:author" content="Cygnus">
+<meta property="article:tag" content="xv6">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="http://example.com/2024/03/13/Lab4-Trap/Pasted%20image%2020240313123317.png">
+  
+  
+  
+  <title>Lab4-Trap - Cygnus的博客</title>
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
+
+
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/github-markdown-css/4.0.0/github-markdown.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/hint.css/2.7.0/hint.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.css" />
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+<!-- Do not modify the link that theme dependent icons -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1749284_hj8rtnfg7um.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1736178_lbnruvf0jn.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+
+  <link id="highlight-css" rel="stylesheet" href="/css/highlight.css" />
+  
+    <link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css" />
+  
+
+
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    Fluid.ctx = Object.assign({}, Fluid.ctx)
+    var CONFIG = {"hostname":"example.com","root":"/","version":"1.9.5","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"follow_dnt":true,"baidu":null,"google":{"measurement_id":null},"tencent":{"sid":null,"cid":null},"woyaola":null,"cnzz":null,"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false}},"search_path":"/local-search.xml","include_content_in_search":true};
+
+    if (CONFIG.web_analytics.follow_dnt) {
+      var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
+      Fluid.ctx.dnt = dntVal && (dntVal.startsWith('1') || dntVal.startsWith('yes') || dntVal.startsWith('on'));
+    }
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+  
+
+
+  
+<meta name="generator" content="Hexo 7.0.0"></head>
+
+
+<body>
+  
+
+  <header>
+    
+
+<div class="header-inner" style="height: 70vh;">
+  <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>Cygnus</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/">
+                <i class="iconfont icon-home-fill"></i>
+                <span>首页</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/">
+                <i class="iconfont icon-archive-fill"></i>
+                <span>归档</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/">
+                <i class="iconfont icon-category-fill"></i>
+                <span>分类</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/">
+                <i class="iconfont icon-tags-fill"></i>
+                <span>标签</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/">
+                <i class="iconfont icon-user-fill"></i>
+                <span>关于</span>
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <i class="iconfont icon-search"></i>
+            </a>
+          </li>
+          
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">
+              <i class="iconfont icon-dark" id="color-toggle-icon"></i>
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+  
+
+<div id="banner" class="banner" parallax=true
+     style="background: url('/img/%E4%BB%99%E5%89%91%E9%97%AE%E6%83%85%E5%A5%B3%E7%A5%9E.jpg') no-repeat center center; background-size: cover;">
+  <div class="full-bg-img">
+    <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+      <div class="banner-text text-center fade-in-up">
+        <div class="h2">
+          
+            <span id="subtitle" data-typed-text="Lab4-Trap"></span>
+          
+        </div>
+
+        
+          
+  <div class="mt-3">
+    
+    
+      <span class="post-meta">
+        <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+        <time datetime="2024-03-13 14:32" pubdate>
+          2024年3月13日 下午
+        </time>
+      </span>
+    
+  </div>
+
+  <div class="mt-1">
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-chart"></i>
+        
+          4k 字
+        
+      </span>
+    
+
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-clock-fill"></i>
+        
+        
+        
+          34 分钟
+        
+      </span>
+    
+
+    
+    
+  </div>
+
+
+        
+      </div>
+
+      
+    </div>
+  </div>
+</div>
+
+</div>
+
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+
+    </div>
+
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div id="board">
+          <article class="post-content mx-auto">
+            <h1 id="seo-header">Lab4-Trap</h1>
+            
+            
+              <div class="markdown-body">
+                
+                <p><a href="%5B%5BLab:%20System%20calls%20(mit.edu)%5D(https://pdos.csail.mit.edu/6.S081/2021/labs/syscall.html)%5D">课程地址</a></p>
+<p>本次实验是需要完成trap相关的实验内容，主要是加深对trap的理解，理论知识包含在 [<a target="_blank" rel="noopener" href="https://cygnus-queen.github.io/2024/03/07/xv6-book-Chapter4/">xv6-book-Chapter4 - Cygnus的博客 (cygnus-queen.github.io)</a></p>
+<h2 id="alarm">Alarm</h2>
+<p>其实这是一个相当有趣的实验。在完成一些项目时，我们总是需要对计算资源的使用情况进行分析，其中CPU资源的利用率是非常重要的分析指标。经常可能会有进程占据了过多的CPU资源长时间运行（占用多个CPU时钟）。</p>
+<p>本次实验主要是实现两个系统调用`siga[[Pasted image 20240313123317.png]]</p>
+<p>[[Lab4 trap]]lram(int,void(*)())<code>、</code>sigreturn()`。通过这两个系统实现alarm功能，<strong>监测用户程序使用CPU的时长</strong>（以时钟中断为单位），从而对用户程序发出提醒。</p>
+<ul>
+<li><p><strong>sigalarm</strong>：第一个参数是设置时钟中断个数当达到个数时调用指定函数，第二个参数时设置alarm的处理函数。</p></li>
+<li><p><strong>sigreturn</strong>：在alarm处理函数中执行完所以代码后调用，主要功能是<strong>恢复中断前的状态</strong>。</p></li>
+</ul>
+<p>监测时间主要是以<strong>时钟中断为单位</strong>（时间片是进程调度的基础），如果时钟中断为50ms，那么每50ms进行一次中断。通过统计用户进程进行了几次中断，就可以获知用户进程占据CPU的累计时长，一旦时长到达了警报线就会触发处理函数给出提醒。</p>
+<h4 id="第一步添加makefile">第一步：添加makefile</h4>
+<p>课程提供了用来检查系统调用是否正确的函数alarmtest。但是原有的makefile文件里没有，所以需要添加进去。</p>
+<figure class="highlight routeros"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs routeros"><span class="hljs-attribute">UPROGS</span>=\<br><span class="hljs-built_in">..</span>.<br><span class="hljs-variable">$U</span>/_alarmtest\<br></code></pre></td></tr></table></figure>
+<h4 id="第二步在内核注册系统调用">第二步：在内核注册系统调用</h4>
+<p>每一个新的系统调用，都需要注册：</p>
+<p>（1）在syscall.h中添加系统调用号的宏定义</p>
+<p>（2）在syscall.c中添加调用号和系统调用函数的映射关系，</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-comment">//----syscall.c</span><br><span class="hljs-keyword">extern</span> uint64 <span class="hljs-title function_">sys_sigalarm</span><span class="hljs-params">(<span class="hljs-type">void</span>)</span>;<br><span class="hljs-keyword">extern</span> uint64 <span class="hljs-title function_">sys_sigreturn</span><span class="hljs-params">(<span class="hljs-type">void</span>)</span>;<br><br><span class="hljs-type">static</span> <span class="hljs-title function_">uint64</span> <span class="hljs-params">(*syscalls[])</span><span class="hljs-params">(<span class="hljs-type">void</span>)</span> = &#123;<br><span class="hljs-comment">//...</span><br>[SYS_sigalarm] sys_sigalarm,<br>[SYS_sigreturn] sys_sigreturn,<br>&#125;<br><br><span class="hljs-comment">//----syscall.h</span><br><span class="hljs-meta">#<span class="hljs-keyword">define</span> SYS_sigalarm 22</span><br><span class="hljs-meta">#<span class="hljs-keyword">define</span> SYS_sigreturn 23</span><br></code></pre></td></tr></table></figure>
+<h4 id="第三步在用户态添加系统调用的定义和声明">第三步：在用户态添加系统调用的定义和声明</h4>
+<p>想要在用户态使用一个函数，自然要对该函数进行声明和定义。</p>
+<p>注意：这里的系统调用定义并非是业务逻辑的真实实现，而是一个外壳，实际是通过发出ecall指令进入内核态找到真正的业务实现。这对进程来讲是透明的，它会以为自己是进行了正常的函数调用。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-comment">//----user.h</span><br><span class="hljs-type">int</span> <span class="hljs-title function_">sigalarm</span><span class="hljs-params">(<span class="hljs-type">int</span>, <span class="hljs-type">void</span> (*)())</span>;<br><span class="hljs-type">int</span> <span class="hljs-title function_">sigreturn</span><span class="hljs-params">(<span class="hljs-type">void</span>)</span>;<br><span class="hljs-comment">//----usys.pl</span><br>entry(<span class="hljs-string">&quot;sigalarm&quot;</span>);<br>entry(<span class="hljs-string">&quot;sigreturn&quot;</span>);<br></code></pre></td></tr></table></figure>
+<p>这样在编译之后，就会生成usys.S文件，里面包含了这两个系统调用的实现。</p>
+<p>这个实现只是单纯的调用ecall指令进入内核态，并且传递函数名称，例如sys_sigalarm。该名称正好在内核态有对应的系统调用号，通过该系统调用号映射到一个函数的地址即可完成真实的调用。</p>
+<h4 id="第四步实现系统调用">第四步：实现系统调用</h4>
+<p>原本的题目是按照test0到test2逐步引导完成整个过程的，但其实如果对中断的流程比较熟悉的话。可以直接完成test2的内容。</p>
+<p>系统调用的代码都位于sysproc.h，最初的形式如下： <figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><code class="hljs c">uint64  <br><span class="hljs-title function_">sys_sigalarm</span><span class="hljs-params">(<span class="hljs-type">void</span>)</span>&#123;  <br>	<span class="hljs-type">int</span> interval;  <br>	uint64 f_addr;  <br>	<span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">proc</span> *<span class="hljs-title">p</span> =</span> myproc();  <br>	  <br>	argint(<span class="hljs-number">0</span>,&amp;interval);  <br>	argaddr(<span class="hljs-number">1</span>,&amp;f_addr);  <br><br>	<span class="hljs-comment">//需要在proc结构中添加这些变量</span><br>	p-&gt;interval = interval;  <br>	p-&gt;handler = f_addr;  <br>	p-&gt;ticks = <span class="hljs-number">0</span>;  <br>	  <br>	<span class="hljs-keyword">return</span> <span class="hljs-number">0</span>;  <br>&#125;  <br>  <br>uint64  <br><span class="hljs-title function_">sys_sigreturn</span><span class="hljs-params">(<span class="hljs-type">void</span>)</span>&#123;  <br>	<span class="hljs-keyword">return</span> <span class="hljs-number">0</span>;  <br>&#125;<br></code></pre></td></tr></table></figure></p>
+<p>sys_sigalarm的逻辑其实很简单，就是单纯的接收函数值然后完成赋值，有一种注册alarm功能的感觉。</p>
+<p>根据题目给出的提示，除了上面的准备内容，还需要把alarm interval 和 handler pointer放在proc结构体中 <figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-comment">//----proc.h</span><br><span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">proc</span>&#123;</span><br>  ...<br>  <span class="hljs-type">int</span> interval;<br>  <span class="hljs-type">int</span> ticks;<br>  uint64 handler;<br>  ...<br>&#125;<br></code></pre></td></tr></table></figure></p>
+<p>在每个时钟中断发生时需要将ticks（计数器）加一，并且当计数器达到设置的条件时，触发handler函数。具体的做法是将handler函数的地址赋值给epc <figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-comment">//kernel/trap.c</span><br><span class="hljs-type">void</span><br><span class="hljs-title function_">usertrap</span><span class="hljs-params">()</span>&#123;<br>  <span class="hljs-comment">//...</span><br>  <span class="hljs-keyword">if</span>(which_dev == <span class="hljs-number">2</span>)&#123;<br>    p-&gt;ticks++;<br>    <span class="hljs-keyword">if</span>(p-&gt;ticks == p-&gt;interval &amp;&amp; <span class="hljs-number">0</span> &lt; p-&gt;interval)&#123;<br><br>	<span class="hljs-comment">//注意，这一步有一点&quot;插队&quot;的感觉</span><br>      p-&gt;trapframe-&gt;epc = p-&gt;handler; <br>    &#125;<span class="hljs-keyword">else</span>&#123;<br>      yield();<br>    &#125;<br>  &#125;<br>  <span class="hljs-comment">//...</span><br>&#125;<br></code></pre></td></tr></table></figure></p>
+<p>然而epc原本的值是通过r_sepc()得到的，保存着中断前pc寄存器的值，按照原本的中断逻辑，需要在中断的末尾调用w_sepc()将epc赋值回sepc寄存器，进而传递给pc，让程序可以在中断前的位置正常运行。</p>
+<p>然后此时我们却将epc的值进行了修改，因此中断结束返回的位置会是sigalarm。而不是原本程序的pc。如果我们想将sigalarm做成一个插件形式的，可以穿插在任意程序当中的函数，则我们还需要解决返回值的问题，具体的方式是在sigreturn中将epc的值“复原”。</p>
+<p>而这就要求我们在赋值handler给epc前，需要将trapframe给保存下来，因此正确的修改方式如下：</p>
+<p>（1）新增一个pre_trapframe，用来保存原本的trapframe，避免因为handler赋值给epc导致找不到原本程序的下一步执行位置。 <figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-comment">//----proc.h</span><br><span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">proc</span>&#123;</span><br>  <span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">trapframe</span> *<span class="hljs-title">pre_trapframe</span>;</span><br>&#125;<br><br><span class="hljs-comment">//----proc.c</span><br><span class="hljs-type">static</span> <span class="hljs-keyword">struct</span> proc*<br><span class="hljs-title function_">allocproc</span><span class="hljs-params">(<span class="hljs-type">void</span>)</span><br>&#123;<br>....<br>  <span class="hljs-keyword">if</span>((p-&gt;pre_trapframe = (<span class="hljs-keyword">struct</span> trapframe *)kalloc()) == <span class="hljs-number">0</span>)&#123;<br>    freeproc(p);<br>    release(&amp;p-&gt;lock);<br>    <span class="hljs-keyword">return</span> <span class="hljs-number">0</span>;<br>  &#125;<br>....<br>&#125;<br><span class="hljs-type">static</span> <span class="hljs-type">void</span><br><span class="hljs-title function_">freeproc</span><span class="hljs-params">(<span class="hljs-keyword">struct</span> proc *p)</span><br>&#123;<br>....<br>  <span class="hljs-keyword">if</span>(p-&gt;pre_trapframe)<br>    kfree((<span class="hljs-type">void</span>*)p-&gt;pre_trapframe);<br>  p-&gt;pre_trapframe = <span class="hljs-number">0</span>;<br>....<br>&#125;<br></code></pre></td></tr></table></figure></p>
+<p>（2）实现sys_sigreturn</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-comment">//--trap.c</span><br><span class="hljs-type">void</span><br><span class="hljs-title function_">usertrap</span><span class="hljs-params">()</span>&#123;<br>  <span class="hljs-comment">//...</span><br>  <span class="hljs-keyword">if</span>(which_dev == <span class="hljs-number">2</span>)&#123;<br>    p-&gt;ticks++;<br>    <span class="hljs-keyword">if</span>(p-&gt;ticks == p-&gt;interval &amp;&amp; p-&gt;interval &gt; <span class="hljs-number">0</span>)&#123;<br>      *p-&gt;pre_trapframe = *p-&gt;trapframe;<br>      p-&gt;trapframe-&gt;epc = p-&gt;handler; <br>    &#125;<span class="hljs-keyword">else</span>&#123;<br>      yield();<br>    &#125;<br>  &#125;<br>  <span class="hljs-comment">//...</span><br>&#125;<br><span class="hljs-comment">//--sysproc.c</span><br>uint64<br><span class="hljs-title function_">sys_sigreturn</span><span class="hljs-params">(<span class="hljs-type">void</span>)</span>&#123;<br>  <span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">proc</span>* <span class="hljs-title">p</span> =</span> myproc();<br>  *p-&gt;trapframe = *p-&gt;pre_trapframe;<br>  p-&gt;ticks = <span class="hljs-number">0</span>;<br>  <span class="hljs-keyword">return</span> p-&gt;pre_trapframe-&gt;a0;<br>&#125;<br></code></pre></td></tr></table></figure>
+<h4 id="实验结果">实验结果</h4>
+<p><img src="Pasted%20image%2020240313123317.png" srcset="/img/loading.gif" lazyload></p>
+<h2 id="总结">总结</h2>
+<p>其实alarm函数是大多数CPU性能指标监测函数的雏形，想要完成该任务需要熟练理解trap的流程以及添加系统调用的方法</p>
+<p>那我们应该怎么实现呢？</p>
+<p>（1）首先是初始化，我既然要监测CPU使用的次数是否超过阈值并报警。那肯定需要一个阈值interval、一个计数的变量ticks和一个处理报警逻辑的函数handler，分别由用户提供，并在调用时初始化。</p>
+<p>（2）其次是业务的执行。既然是检测时钟中断的次数，那么自然在trap.c代码中完成ticks++和阈值判断的业务。如果想要执行报警逻辑，需要返回给pc一个函数的地址。而赋值pc是通过赋值trapframe-&gt;epc进而赋值sepc实现的。</p>
+<p>（3）最后就是恢复原本的进程，如果直接赋值了epc会导致原本进程的上下文丢失，因此在赋值前自然想到使用其他变量来保存上下文，于是我们新建了一个pre_trapframe。在调用sysreturn时将进程上下文赋值回去。</p>
+
+                
+              </div>
+            
+            <hr/>
+            <div>
+              <div class="post-metas my-3">
+  
+    <div class="post-meta mr-3 d-flex align-items-center">
+      <i class="iconfont icon-category"></i>
+      
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/" class="category-chain-item">操作系统</a>
+  
+  
+
+      </span>
+    
+  
+</span>
+
+    </div>
+  
+  
+    <div class="post-meta">
+      <i class="iconfont icon-tags"></i>
+      
+        <a href="/tags/xv6/" class="print-no-link">#xv6</a>
+      
+    </div>
+  
+</div>
+
+
+              
+  
+
+  <div class="license-box my-3">
+    <div class="license-title">
+      <div>Lab4-Trap</div>
+      <div>http://example.com/2024/03/13/Lab4-Trap/</div>
+    </div>
+    <div class="license-meta">
+      
+        <div class="license-meta-item">
+          <div>作者</div>
+          <div>Cygnus</div>
+        </div>
+      
+      
+        <div class="license-meta-item license-meta-date">
+          <div>发布于</div>
+          <div>2024年3月13日</div>
+        </div>
+      
+      
+      
+        <div class="license-meta-item">
+          <div>许可协议</div>
+          <div>
+            
+              
+              
+                <a class="print-no-link" target="_blank" href="https://creativecommons.org/licenses/by/4.0/">
+                  <span class="hint--top hint--rounded" aria-label="BY - 署名">
+                    <i class="iconfont icon-by"></i>
+                  </span>
+                </a>
+              
+            
+          </div>
+        </div>
+      
+    </div>
+    <div class="license-icon iconfont"></div>
+  </div>
+
+
+
+              
+                <div class="post-prevnext my-3">
+                  <article class="post-prev col-6">
+                    
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2024/03/07/xv6-book-Chapter4/" title="xv6-book-Chapter4">
+                        <span class="hidden-mobile">xv6-book-Chapter4</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar" style="margin-left: -1rem">
+    <div id="toc">
+  <p class="toc-header">
+    <i class="iconfont icon-list"></i>
+    <span>目录</span>
+  </p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+
+
+  </aside>
+
+
+    </div>
+  </div>
+</div>
+
+
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+
+
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v" for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    
+
+    
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+  
+  
+  
+  
+</div>
+
+  </footer>
+
+  <!-- Scripts -->
+  
+  <script  src="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://lib.baomitu.com/jquery/3.6.4/jquery.min.js" ></script>
+<script  src="https://lib.baomitu.com/twitter-bootstrap/4.6.1/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+
+  <script  src="https://lib.baomitu.com/typed.js/2.0.12/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var subtitle = document.getElementById('subtitle');
+      if (!subtitle || !typing) {
+        return;
+      }
+      var text = subtitle.getAttribute('data-typed-text');
+      
+        typing(text);
+      
+    })(window, document);
+  </script>
+
+
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/tocbot/4.20.1/tocbot.min.js', function() {
+    var toc = jQuery('#toc');
+    if (toc.length === 0 || !window.tocbot) { return; }
+    var boardCtn = jQuery('#board-ctn');
+    var boardTop = boardCtn.offset().top;
+
+    window.tocbot.init(Object.assign({
+      tocSelector     : '#toc-body',
+      contentSelector : '.markdown-body',
+      linkClass       : 'tocbot-link',
+      activeLinkClass : 'tocbot-active-link',
+      listClass       : 'tocbot-list',
+      isCollapsedClass: 'tocbot-is-collapsed',
+      collapsibleClass: 'tocbot-is-collapsible',
+      scrollSmooth    : true,
+      includeTitleTags: true,
+      headingsOffset  : -boardTop,
+    }, CONFIG.toc));
+    if (toc.find('.toc-list-item').length > 0) {
+      toc.css('visibility', 'visible');
+    }
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('tocbot' in window) {
+        tocbot.refresh();
+        var toc = jQuery('#toc');
+        if (toc.length === 0 || !tocbot) {
+          return;
+        }
+        if (toc.find('.toc-list-item').length > 0) {
+          toc.css('visibility', 'visible');
+        }
+      }
+    });
+  });
+</script>
+
+
+  <script src=https://lib.baomitu.com/clipboard.js/2.0.11/clipboard.min.js></script>
+
+  <script>Fluid.plugins.codeWidget();</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/anchor-js/4.3.1/anchor.min.js', function() {
+    window.anchors.options = {
+      placement: CONFIG.anchorjs.placement,
+      visible  : CONFIG.anchorjs.visible
+    };
+    if (CONFIG.anchorjs.icon) {
+      window.anchors.options.icon = CONFIG.anchorjs.icon;
+    }
+    var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+    var res = [];
+    for (var item of el) {
+      res.push('.markdown-body > ' + item.trim());
+    }
+    if (CONFIG.anchorjs.placement === 'left') {
+      window.anchors.options.class = 'anchorjs-link-left';
+    }
+    window.anchors.add(res.join(', '));
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('anchors' in window) {
+        anchors.removeAll();
+        var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+        var res = [];
+        for (var item of el) {
+          res.push('.markdown-body > ' + item.trim());
+        }
+        if (CONFIG.anchorjs.placement === 'left') {
+          anchors.options.class = 'anchorjs-link-left';
+        }
+        anchors.add(res.join(', '));
+      }
+    });
+  });
+</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.js', function() {
+    Fluid.plugins.fancyBox();
+  });
+</script>
+
+
+  <script>Fluid.plugins.imageCaption();</script>
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+
+
+<!-- 主题的启动项，将它保持在最底部 -->
+<!-- the boot of the theme, keep it at the bottom -->
+<script  src="/js/boot.js" ></script>
+
+
+  
+
+  <noscript>
+    <div class="noscript-warning">博客在允许 JavaScript 运行的环境下浏览效果更佳</div>
+  </noscript>
+</body>
+</html>
