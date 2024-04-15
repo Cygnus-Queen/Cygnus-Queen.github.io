@@ -1,0 +1,740 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=auto>
+
+
+
+<head>
+  <meta charset="UTF-8">
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/fluid.png">
+  <link rel="icon" href="/img/fluid.png">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="author" content="Cygnus">
+  <meta name="keywords" content="">
+  
+    <meta name="description" content="Chapter8 File System part1 文件系统是操作系统持久化的一部分，是对文件的组织管理，整体可以抽象为7层，底层为上层提供服务，系统的设计思路和很多数据库都有相似的地方。  我将整个文件系统各层的目的总结如下：  Disk Layer，与QEMU仿真的虚拟磁盘打交道，往磁盘上读或写一些块，提供了真正读写磁盘的函数。 Buffer Cache Layer，维护了一个bc">
+<meta property="og:type" content="article">
+<meta property="og:title" content="xv6-book-Chapter8 文件系统 part1">
+<meta property="og:url" content="http://example.com/2024/04/15/xv6-book-Chapter8-%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F-part1/index.html">
+<meta property="og:site_name" content="Cygnus的博客">
+<meta property="og:description" content="Chapter8 File System part1 文件系统是操作系统持久化的一部分，是对文件的组织管理，整体可以抽象为7层，底层为上层提供服务，系统的设计思路和很多数据库都有相似的地方。  我将整个文件系统各层的目的总结如下：  Disk Layer，与QEMU仿真的虚拟磁盘打交道，往磁盘上读或写一些块，提供了真正读写磁盘的函数。 Buffer Cache Layer，维护了一个bc">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://example.com/2024/04/15/xv6-book-Chapter8-%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F-part1/Pasted%20image%2020240329165958.png">
+<meta property="og:image" content="http://example.com/2024/04/15/xv6-book-Chapter8-%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F-part1/Pasted%20image%2020240329170526.png">
+<meta property="article:published_time" content="2024-04-15T14:16:07.000Z">
+<meta property="article:modified_time" content="2024-04-15T14:17:17.307Z">
+<meta property="article:author" content="Cygnus">
+<meta property="article:tag" content="xv6">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="http://example.com/2024/04/15/xv6-book-Chapter8-%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F-part1/Pasted%20image%2020240329165958.png">
+  
+  
+  
+  <title>xv6-book-Chapter8 文件系统 part1 - Cygnus的博客</title>
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
+
+
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/github-markdown-css/4.0.0/github-markdown.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/hint.css/2.7.0/hint.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.css" />
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+<!-- Do not modify the link that theme dependent icons -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1749284_hj8rtnfg7um.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1736178_lbnruvf0jn.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+
+  <link id="highlight-css" rel="stylesheet" href="/css/highlight.css" />
+  
+    <link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css" />
+  
+
+
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    Fluid.ctx = Object.assign({}, Fluid.ctx)
+    var CONFIG = {"hostname":"example.com","root":"/","version":"1.9.5","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"follow_dnt":true,"baidu":null,"google":{"measurement_id":null},"tencent":{"sid":null,"cid":null},"woyaola":null,"cnzz":null,"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false}},"search_path":"/local-search.xml","include_content_in_search":true};
+
+    if (CONFIG.web_analytics.follow_dnt) {
+      var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
+      Fluid.ctx.dnt = dntVal && (dntVal.startsWith('1') || dntVal.startsWith('yes') || dntVal.startsWith('on'));
+    }
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+  
+
+
+  
+<meta name="generator" content="Hexo 7.0.0"></head>
+
+
+<body>
+  
+
+  <header>
+    
+
+<div class="header-inner" style="height: 70vh;">
+  <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>Cygnus</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/">
+                <i class="iconfont icon-home-fill"></i>
+                <span>首页</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/">
+                <i class="iconfont icon-archive-fill"></i>
+                <span>归档</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/">
+                <i class="iconfont icon-category-fill"></i>
+                <span>分类</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/">
+                <i class="iconfont icon-tags-fill"></i>
+                <span>标签</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/">
+                <i class="iconfont icon-user-fill"></i>
+                <span>关于</span>
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <i class="iconfont icon-search"></i>
+            </a>
+          </li>
+          
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">
+              <i class="iconfont icon-dark" id="color-toggle-icon"></i>
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+  
+
+<div id="banner" class="banner" parallax=true
+     style="background: url('/img/%E4%BB%99%E5%89%91%E9%97%AE%E6%83%85%E5%A5%B3%E7%A5%9E.jpg') no-repeat center center; background-size: cover;">
+  <div class="full-bg-img">
+    <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+      <div class="banner-text text-center fade-in-up">
+        <div class="h2">
+          
+            <span id="subtitle" data-typed-text="xv6-book-Chapter8 文件系统 part1"></span>
+          
+        </div>
+
+        
+          
+  <div class="mt-3">
+    
+    
+      <span class="post-meta">
+        <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+        <time datetime="2024-04-15 22:16" pubdate>
+          2024年4月15日 晚上
+        </time>
+      </span>
+    
+  </div>
+
+  <div class="mt-1">
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-chart"></i>
+        
+          18k 字
+        
+      </span>
+    
+
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-clock-fill"></i>
+        
+        
+        
+          153 分钟
+        
+      </span>
+    
+
+    
+    
+  </div>
+
+
+        
+      </div>
+
+      
+    </div>
+  </div>
+</div>
+
+</div>
+
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+
+    </div>
+
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div id="board">
+          <article class="post-content mx-auto">
+            <h1 id="seo-header">xv6-book-Chapter8 文件系统 part1</h1>
+            
+            
+              <div class="markdown-body">
+                
+                <h1 id="chapter8-file-system-part1">Chapter8 File System part1</h1>
+<p>文件系统是操作系统持久化的一部分，是对文件的组织管理，整体可以抽象为7层，底层为上层提供服务，系统的设计思路和很多数据库都有相似的地方。</p>
+<p><img src="Pasted%20image%2020240329165958.png" srcset="/img/loading.gif" lazyload> 我将整个文件系统各层的目的总结如下：</p>
+<ul>
+<li><p><strong>Disk Layer</strong>，与QEMU仿真的虚拟磁盘打交道，往磁盘上读或写一些块，提供了真正读写磁盘的函数。</p></li>
+<li><p><strong>Buffer Cache Layer</strong>，维护了一个bcache结构和多个buf结构，向上层暴露读写cache的API，将对磁盘的读写封装为对内存的读写，给上层提供一种直接读写磁盘的错觉。</p></li>
+<li><p><strong>Logging Layer</strong>，维护了一个log结构和一系列需要写入磁盘的logheader结构，保存了日志块到磁盘块的映射关系，为磁盘读写提供崩溃一致性服务，高层对磁盘块的更新，将被打包成事务放入日志层，日志层确保这些更新是原子的，崩溃时<strong>写入操作要么都不发生，要么可恢复</strong>。</p></li>
+<li><p><strong>Inode Layer</strong>，维护了一个icache结构体和一系列inode结构体，以inode的概念将多个数据块封装在一起，向上层提供一次访问多个数据块的能力，屏蔽具体访问某个数据块的细节，对应的函数readi，writei将以地址为单位访问数据。自此，高层对数据的访问将以inode为单位，不需要指定具体的某个数据块</p></li>
+<li><p><strong>Directory Layer</strong>，利用inode结构中的addr，存储多个dirent结构，每个该结构都指向一个inode和对应的name。将众多的inode抽象为一个树状结构，方便寻找和定位。为上层提供了查找当前目录下inode的服务。</p></li>
+<li><p><strong>Pathname Layer</strong>，为每个文件和文件目录提供符合文件系统层次结构的路径名，向上层提供根据根目录循环查找具体某个inode的服务</p></li>
+<li><p><strong>File Descriptor Layer</strong>，文件描述符将所有底层资源（管道、设备、普通文件等）进行抽象，自此，上层对所有底层资源的访问都将以文件为单位，不再有inode的概念。诸多的系统调用例如mkdir，dup，read，open，pipe都是基于该层提供的服务实现。</p></li>
+</ul>
+<p>如果第一次见到这些东西难免有点晕，怎么这么复杂？但等看完所有内容，再回头看这些描述，会发现每一层的功能服务是如此的清晰明了。文件系统从底层到高层，逐层提供服务的思想是如此的精妙</p>
+<p>磁盘布局如下图所示，每个部分究竟是干什么的，后文会慢慢展开</p>
+<p><img src="Pasted%20image%2020240329170526.png" srcset="/img/loading.gif" lazyload></p>
+<p>本章内容将包含buffer cache层和log层的内容，<strong>这两层包含在一起为更上层提供了安全访问磁盘的API接口</strong></p>
+<h2 id="buffer-cache">Buffer cache</h2>
+<p>磁盘读写操作是很慢的，我们不可能真的对每个读写操作都直接调用驱动程序访问磁盘扇区，所以一般都会将一部分内存作为磁盘的缓存，在cache miss的时候再进行调换。</p>
+<p><strong>Buffer cache将磁盘访问进行抽象，每次进程对磁盘的操作都变成了对cache的操作，屏蔽了读写磁盘的细节。</strong> 磁盘读写的单位是扇区，cache读写的单位是块，一个块等于了一个或多个扇区的大小。</p>
+<h4 id="数据结构">数据结构</h4>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><code class="hljs c"><br><span class="hljs-class"><span class="hljs-keyword">struct</span> &#123;</span>  <br>  <span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">spinlock</span> <span class="hljs-title">lock</span>;</span>  <br>  <span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">buf</span> <span class="hljs-title">buf</span>[<span class="hljs-title">NBUF</span>];</span>  <br>  <br>  <span class="hljs-comment">// Linked list of all buffers, through prev/next.  </span><br>  <span class="hljs-comment">// Sorted by how recently the buffer was used.  </span><br>  <span class="hljs-comment">// head.next is most recent, head.prev is least.  </span><br>  <span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">buf</span> <span class="hljs-title">head</span>;</span>  <br>&#125; bcache;<br><br><br><span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">buf</span> &#123;</span>  <br>  <span class="hljs-type">int</span> valid;   <span class="hljs-comment">// has data been read from disk?  </span><br>  <span class="hljs-type">int</span> disk;    <span class="hljs-comment">// does disk &quot;own&quot; buf?  </span><br>  uint dev;    <span class="hljs-comment">//该缓存块表示的设备</span><br>  uint blockno;   <span class="hljs-comment">//块号</span><br>  <span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">sleeplock</span> <span class="hljs-title">lock</span>;</span>  <span class="hljs-comment">//这是公共资源，需要配锁</span><br>  uint refcnt;  <span class="hljs-comment">//每个缓存块可能被多个任务引用，需要计数。缓存块可以被多个任务引用，但同时只能由一个任务读写。</span><br>  <span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">buf</span> *<span class="hljs-title">prev</span>;</span> <span class="hljs-comment">// LRU cache list  </span><br>  <span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">buf</span> *<span class="hljs-title">next</span>;</span>  <br>  uchar data[BSIZE];  <span class="hljs-comment">// BSIZE = 1024，xv6的块大小是1KB</span><br>&#125;;<br></code></pre></td></tr></table></figure>
+<p>bcache 表示整个cache，是一个共有结构，因此拥有一把自旋锁（保护整个LRU结构，修改LRU不能需要在没有读写操作时执行）。该cache拥有NBUF个槽位，每个槽位都是buf结构。buf是缓存块的数据结构，每个buf都是一个或磁盘块的抽象，拥有睡眠锁（保护buf内部数据的安全）。</p>
+<p>buf中除了包含真实的缓存数据以外，还需要： （1）valid：表示该槽位是否已被使用，是否有效 （2）disk：表示磁盘正在处理该缓存块的读或写请求，如果磁盘还未处理完成，disk=1，如果磁盘处理完成，disk=0 （3）refcnt：表示当前有多少个内核线程保存了指向该buf的指针，缓存块可以被多个线程引用，但同时只能由一个线程执行读写 （4）blockno：表示缓存的磁盘块在磁盘上的位置</p>
+<h4 id="函数">函数</h4>
+<p>（1）binit初始化：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-type">void</span>  <br><span class="hljs-title function_">binit</span><span class="hljs-params">(<span class="hljs-type">void</span>)</span>  <br>&#123;  <br>  <span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">buf</span> *<span class="hljs-title">b</span>;</span>  <br>  <br>  initlock(&amp;bcache.lock, <span class="hljs-string">&quot;bcache&quot;</span>);  <br>  <br>  <span class="hljs-comment">// 先让head的前后都指向自己，然后开始串联这个LRU链表</span><br>  bcache.head.prev = &amp;bcache.head;  <br>  bcache.head.next = &amp;bcache.head;  <br><br>	<span class="hljs-comment">//头插法</span><br>  <span class="hljs-keyword">for</span>(b = bcache.buf; b &lt; bcache.buf+NBUF; b++)&#123;  <br>    b-&gt;next = bcache.head.next;  <br>    b-&gt;prev = &amp;bcache.head;  <br>    initsleeplock(&amp;b-&gt;lock, <span class="hljs-string">&quot;buffer&quot;</span>);  <br>    bcache.head.next-&gt;prev = b;  <br>    bcache.head.next = b;  <br>  &#125;  <br>&#125;<br></code></pre></td></tr></table></figure>
+<p>初始化之后，整个数组串起来就变成了LRU，next表示最近使用的，prev表示很久未使用的。</p>
+<p>（2）bread读取 <figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-comment">// Return a locked buf with the contents of the indicated block.  </span><br><span class="hljs-keyword">struct</span> buf*  <br><span class="hljs-title function_">bread</span><span class="hljs-params">(uint dev, uint blockno)</span>  <br>&#123;  <br>  <span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">buf</span> *<span class="hljs-title">b</span>;</span>  <br>  <br>  b = bget(dev, blockno);  <br>  <span class="hljs-keyword">if</span>(!b-&gt;valid) &#123;  <br>    virtio_disk_rw(b, <span class="hljs-number">0</span>);  <span class="hljs-comment">//0代表读取磁盘块</span><br>    b-&gt;valid = <span class="hljs-number">1</span>;  <br>  &#125;  <br>  <span class="hljs-keyword">return</span> b;  <br>&#125;<br></code></pre></td></tr></table></figure></p>
+<p>bread通过调用bget来获取指定磁盘块的缓存块，如果b-&gt;valid=0，说明这个槽位是空的，没有缓存任何磁盘块，所以调用virtio_disk_rw从上层指定磁盘（dev）读取上层指定的磁盘块（blockno）的内容，读取完成后更新b-&gt;valid。bread最后返回的是上锁的且可用的缓存块</p>
+<p>所以bread的核心在于bget。 <figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-comment">// Look through buffer cache for block on device dev.  </span><br><span class="hljs-comment">// If not found, allocate a buffer.  </span><br><span class="hljs-comment">// In either case, return locked buffer.  </span><br><span class="hljs-type">static</span> <span class="hljs-keyword">struct</span> buf*  <br><span class="hljs-title function_">bget</span><span class="hljs-params">(uint dev, uint blockno)</span>  <br>&#123;  <br>  <span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">buf</span> *<span class="hljs-title">b</span>;</span>  <br><br><br><span class="hljs-comment">// 多个线程访问Buffer Cache时，总是在外面等待</span><br>  acquire(&amp;bcache.lock);  <br>  <br>  <span class="hljs-comment">// Is the block already cached?  </span><br>  <span class="hljs-keyword">for</span>(b = bcache.head.next; b != &amp;bcache.head; b = b-&gt;next)&#123;  <br>    <span class="hljs-keyword">if</span>(b-&gt;dev == dev &amp;&amp; b-&gt;blockno == blockno)&#123;  <br>      b-&gt;refcnt++;  <br>      release(&amp;bcache.lock);  <br>      acquiresleep(&amp;b-&gt;lock);  <br>      <span class="hljs-keyword">return</span> b;  <br>    &#125;  <br>  &#125;  <br>  <br>  <span class="hljs-comment">// Not cached.  </span><br>  <span class="hljs-comment">// Recycle the least recently used (LRU) unused buffer.  </span><br>  <span class="hljs-keyword">for</span>(b = bcache.head.prev; b != &amp;bcache.head; b = b-&gt;prev)&#123;  <br>    <span class="hljs-keyword">if</span>(b-&gt;refcnt == <span class="hljs-number">0</span>) &#123;  <br>      b-&gt;dev = dev;  <br>      b-&gt;blockno = blockno;  <br>      b-&gt;valid = <span class="hljs-number">0</span>;  <br>      b-&gt;refcnt = <span class="hljs-number">1</span>;   <br>      release(&amp;bcache.lock);  <br>      <span class="hljs-comment">//此处会出现同步问题嘛？比如第二个线程在第一个循环抢先获得了睡眠锁，误认为缓存命中。</span><br>      <span class="hljs-comment">//答案是不会，因为refcnt为1，所以不用担心被释放；valid为0，即使从第一个循环返回，依然会被bread认为缓存未命中，进而去磁盘读取数据（完成了第一个线程原本想完成的任务）</span><br>      acquiresleep(&amp;b-&gt;lock);  <br>    <span class="hljs-comment">// 返回上锁的缓存块</span><br>      <span class="hljs-keyword">return</span> b;  <br>    &#125;  <br>  &#125;  <br>  panic(<span class="hljs-string">&quot;bget: no buffers&quot;</span>);  <br>&#125;<br></code></pre></td></tr></table></figure></p>
+<p>bget首先对bcache上锁（只要访问缓存就必须先上大锁），遍历整个bcache，结果分为两种情况：如果命中则引用数refcnt++然后释放大锁，返回带睡眠锁的buf；否则从LRU中找出第一个没有线程使用的块标记valid=0后，释放大锁（valid=0就不会被使用，refcnt!=0就不会释放），返回带睡眠锁的buf。</p>
+<p>如果所有的槽位都满了则panic。一种优化方案是让相应的线程先挂起睡眠，直到Buffer Cache中有了空的槽位再将其唤醒</p>
+<p>（3）bwrite刷新</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-comment">// Write b&#x27;s contents to disk.  Must be locked.  </span><br><span class="hljs-type">void</span>  <br><span class="hljs-title function_">bwrite</span><span class="hljs-params">(<span class="hljs-keyword">struct</span> buf *b)</span>  <br>&#123;  <br>  <span class="hljs-keyword">if</span>(!holdingsleep(&amp;b-&gt;lock))  <br>    panic(<span class="hljs-string">&quot;bwrite&quot;</span>);  <br>  virtio_disk_rw(b, <span class="hljs-number">1</span>);  <br>&#125;<br></code></pre></td></tr></table></figure>
+<p>bwrite它首先保证持有该缓存块的睡眠锁，然后调用virtio_dist_rw将更新后的缓存块冲刷到磁盘的相应位置上</p>
+<p>（4）brelse释放 <figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-comment">// Release a locked buffer.  </span><br><span class="hljs-comment">// Move to the head of the most-recently-used list.  </span><br><span class="hljs-type">void</span>  <br><span class="hljs-title function_">brelse</span><span class="hljs-params">(<span class="hljs-keyword">struct</span> buf *b)</span>  <br>&#123;  <br>  <span class="hljs-keyword">if</span>(!holdingsleep(&amp;b-&gt;lock))  <br>    panic(<span class="hljs-string">&quot;brelse&quot;</span>);  <br><br>	<span class="hljs-comment">//因为每次bread返回的buf都是带锁的，在上层进行使用时保证了buf不被修改，所以在使用完成后需要释放锁</span><br>  releasesleep(&amp;b-&gt;lock);  <br>  <br>  acquire(&amp;bcache.lock);  <br>  b-&gt;refcnt--;  <br>  <span class="hljs-keyword">if</span> (b-&gt;refcnt == <span class="hljs-number">0</span>) &#123;  <br>    <span class="hljs-comment">// 如果refcnt不为0，说明该buf还会被使用，那就没必要在现在移动它的位置，算是一个小优化（或许可以叫懒移动？）</span><br>    b-&gt;next-&gt;prev = b-&gt;prev;  <br>    b-&gt;prev-&gt;next = b-&gt;next;  <br>    b-&gt;next = bcache.head.next;  <br>    b-&gt;prev = &amp;bcache.head;  <br>    bcache.head.next-&gt;prev = b;  <br>    bcache.head.next = b;  <br>  &#125;  <br>    <br>  release(&amp;bcache.lock);  <br>&#125;<br></code></pre></td></tr></table></figure></p>
+<p>每次引用（bget）时都会提高缓存块refcnt的值，所谓的brelse释放也就是在完成了读写操作后，让refcnt下降并维护LRU结构。</p>
+<p>（5）其他</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-type">void</span>  <br><span class="hljs-title function_">bpin</span><span class="hljs-params">(<span class="hljs-keyword">struct</span> buf *b)</span> &#123;  <br>  acquire(&amp;bcache.lock);  <br>  b-&gt;refcnt++;  <br>  release(&amp;bcache.lock);  <br>&#125;  <br>  <br><span class="hljs-type">void</span>  <br><span class="hljs-title function_">bunpin</span><span class="hljs-params">(<span class="hljs-keyword">struct</span> buf *b)</span> &#123;  <br>  acquire(&amp;bcache.lock);  <br>  b-&gt;refcnt--;  <br>  release(&amp;bcache.lock);  <br>&#125;<br></code></pre></td></tr></table></figure>
+<p>refcnt是很关键的变量，这两个函数用来保证要写入日志的缓存块不会被回收（在log层使用）</p>
+<h4 id="小总结">小总结</h4>
+<p>Buffer cache层主要做两件事： （1）同步所有对磁盘块的并发访问，尤其是保证，一个磁盘块要么没有被缓存，要么在内存中<strong>只有一份缓存副本</strong>，而且<strong>一次只有一个内核线程可以使用该副本</strong></p>
+<p>（2）核心数据结构是bcache和buf，前者使用自旋锁保护，后者使用睡眠锁，bget和bread中加锁的顺序是重点</p>
+<h2 id="logging">Logging</h2>
+<p>buffer cache为线程提供了读写磁盘的功能，但这只是最基础的功能，如果崩溃或断电在这些写操作的中间发生，那么就会导致磁盘上的数据结构处于不一致的状态。例如在删除文件时，需要将文件长度设为0，并且释放它的数据块。此时，如果这些写磁盘操作被重新排序组织的话，那么在这期间发生的崩溃可能会导致inode指向一个已经标记为空闲的数据块</p>
+<p>解决崩溃一致性的常见方案就是使用日志记录。在xv6的文件系统中，<strong>文件操作方面的系统调用并不会直接对磁盘进行写操作，而是把对磁盘写操作描述包装成一个日志写在磁盘中，当该系统调用执行完成之后，再提交一个记录到磁盘上</strong></p>
+<p>数据日志协议的四部曲如下： - <strong>日志写入</strong>：将事务的内容（TxB，元数据块和数据块）写入日志，等待这些写入完成。 - <strong>日志提交</strong>：将事务提交块（包括TxE）写入日志，一旦完成，我们认为事务已经成功提交。 - <strong>加检查点</strong>：将日志中的事务（元数据和数据更新）写入磁盘的最终位置上。 - <strong>释放</strong>：一段时间后，更新日志超级块，将已完成加检查点的事务标记为空闲。</p>
+<p>xv6的数据日志也遵循上述协议，按照上述逻辑工作。如果系统崩溃或断电，重启之后，在启动阶段，文件系统的恢复程序就会检查日志上是否有已被提交的完整事务。如果有，那么就重放它们，也就是将日志内容重新写到磁盘上的相应位置；如果没有，那么直接无视这部分日志，就好像什么也没发生过。最后，恢复程序总会清除日志</p>
+<figure class="highlight"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs">问题：为什么日志可以解决崩溃一致性问题？<br>答案：如果崩溃发生在提交之前，那么磁盘上的日志文件就不会被标记为已完成，恢复系统的代码就会忽视它，磁盘的状态就好像写操作从未进行一样。如果是在提交之后崩溃的，恢复程序会重演所有的写操作。在任何一种情况下，日志文件都使得磁盘操作对于系统崩溃来说是原子操作，在恢复之后，要么所有的写操作都完成，要么都失败<br></code></pre></td></tr></table></figure>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-comment">// Disk layout:  </span><br><span class="hljs-comment">// [ boot block | super block | log | inode blocks |  </span><br><span class="hljs-comment">//                                          free bit map | data blocks]  </span><br><span class="hljs-comment">//  </span><br><span class="hljs-comment">// mkfs computes the super block and builds an initial file system. The  </span><br><span class="hljs-comment">// super block describes the disk layout:  </span><br><span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">superblock</span> &#123;</span>  <br>  uint magic;        <span class="hljs-comment">// Must be FSMAGIC  </span><br>  uint size;         <span class="hljs-comment">// Size of file system image (blocks)  </span><br>  uint nblocks;      <span class="hljs-comment">// Number of data blocks  数据块数量</span><br>  uint ninodes;      <span class="hljs-comment">// Number of inodes.  inode数量</span><br>  uint nlog;         <span class="hljs-comment">// Number of log blocks   日志块数量</span><br>  uint logstart;     <span class="hljs-comment">// Block number of first log block 第一个日志块的块号  </span><br>  uint inodestart;   <span class="hljs-comment">// Block number of first inode block  第一个inode节点所在块号</span><br>  uint bmapstart;    <span class="hljs-comment">// Block number of first free map block  第一个位图块块号</span><br>&#125;;<br></code></pre></td></tr></table></figure>
+<p>xv6的日志区域驻留在磁盘的一个固定位置上，并且在超级块中也有其位置记录。日志区在超级快后面，分为日志头（位于第一个日志块）和日志数据块</p>
+<h4 id="数据结构-1">数据结构</h4>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-meta">#<span class="hljs-keyword">define</span> MAXOPBLOCKS  10  <span class="hljs-comment">// max # of blocks any FS op writes</span></span><br><span class="hljs-meta">#<span class="hljs-keyword">define</span> LOGSIZE (MAXOPBLOCKS*3)  <span class="hljs-comment">// max data blocks in on-disk log</span></span><br><span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">logheader</span> &#123;</span>     <span class="hljs-comment">//日志头部</span><br>  <span class="hljs-type">int</span> n;               <br>  <span class="hljs-type">int</span> block[LOGSIZE]; <br>&#125;;<br></code></pre></td></tr></table></figure>
+<p>日志头用来记录每次日志的大小和位置关系信息，n用来记录每次日志使用的空间大小，日志空间的总大小记录在超级块中（单位是块），block建立了日志数据块和磁盘块的映射关系。例如<code>block[1] = 1024</code>表示日志块1记录的数据应该放到1024磁盘块。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">log</span> &#123;</span><br>  <span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">spinlock</span> <span class="hljs-title">lock</span>;</span><br>  <span class="hljs-type">int</span> start;    <span class="hljs-comment">//日志区第一块块号，初始化时从超级块中读取</span><br>  <span class="hljs-type">int</span> size;     <span class="hljs-comment">//日志区大小，初始化时从超级快读取</span><br>  <span class="hljs-type">int</span> outstanding; <span class="hljs-comment">// 有多少文件系统调用正在执行</span><br>  <span class="hljs-type">int</span> committing;  <span class="hljs-comment">// 正在提交</span><br>  <span class="hljs-type">int</span> dev;     <span class="hljs-comment">//设备，即主盘还是从盘，文件系统在从盘，初始化时从超级快读取</span><br>  <span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">logheader</span> <span class="hljs-title">lh</span>;</span>   <span class="hljs-comment">//日志头</span><br>&#125;;<br><span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">log</span> <span class="hljs-title">log</span>;</span><br></code></pre></td></tr></table></figure>
+<p>log结构体只存在于内存，用来管理当前的日志，这是一个公共资源要避免竞争条件所以配了一把锁。从这里可以发现，xv6使用了一个log结构体来管理日志系统，和真实系统的日志系统相比，并发性不足。xv6一次只能处理一个事务，即在完成这次事务的提交之前，不能产生新的事务。</p>
+<p>如果想要提高并发性能，可以将log中的logheader从一个变成数组，用类似bcache的方式来管理，这个过程涉及到很多并发访问的问题，要复杂很多。</p>
+<h4 id="函数-1">函数</h4>
+<p>（1）初始化initlog 与根据事务崩溃恢复 <figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br></pre></td><td class="code"><pre><code class="hljs c"><br><span class="hljs-comment">// Init fs，在操作系统启动时调用</span><br><span class="hljs-type">void</span>  <br><span class="hljs-title function_">fsinit</span><span class="hljs-params">(<span class="hljs-type">int</span> dev)</span> &#123;  <br>  readsb(dev, &amp;sb);  <br>  <span class="hljs-keyword">if</span>(sb.magic != FSMAGIC)  <br>    panic(<span class="hljs-string">&quot;invalid file system&quot;</span>);  <br>  initlog(dev, &amp;sb);  <br>&#125;<br><br><span class="hljs-type">void</span> <span class="hljs-title function_">readsb</span><span class="hljs-params">(<span class="hljs-type">int</span> dev, <span class="hljs-keyword">struct</span> superblock *sb)</span>  <span class="hljs-comment">//读超级块</span><br>&#123;<br>  <span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">buf</span> *<span class="hljs-title">bp</span>;</span><br>  bp = bread(dev, <span class="hljs-number">1</span>);  <span class="hljs-comment">//读取超级块数据到缓存块</span><br>  memmove(sb, bp-&gt;data, <span class="hljs-keyword">sizeof</span>(*sb));  <span class="hljs-comment">//移动数据</span><br>  brelse(bp);   <span class="hljs-comment">//释放缓存块</span><br>&#125;<br><br><span class="hljs-type">void</span>  <br><span class="hljs-title function_">initlog</span><span class="hljs-params">(<span class="hljs-type">int</span> dev, <span class="hljs-keyword">struct</span> superblock *sb)</span>  <br>&#123;  <br>  <span class="hljs-keyword">if</span> (<span class="hljs-keyword">sizeof</span>(<span class="hljs-keyword">struct</span> logheader) &gt;= BSIZE)  <br>    panic(<span class="hljs-string">&quot;initlog: too big logheader&quot;</span>);  <br>  <br>  initlock(&amp;<span class="hljs-built_in">log</span>.lock, <span class="hljs-string">&quot;log&quot;</span>);  <br>  <span class="hljs-built_in">log</span>.start = sb-&gt;logstart;  <br>  <span class="hljs-built_in">log</span>.size = sb-&gt;nlog;  <br>  <span class="hljs-built_in">log</span>.dev = dev;  <br>  recover_from_log();  <br>&#125;<br><br><br></code></pre></td></tr></table></figure></p>
+<p>初始化时从超级块中读出log块的信息，然后触发恢复操作</p>
+<p>故障恢复recover_from_log <figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-type">static</span> <span class="hljs-type">void</span>  <br><span class="hljs-title function_">recover_from_log</span><span class="hljs-params">(<span class="hljs-type">void</span>)</span>  <br>&#123;  <br>  read_head();  <span class="hljs-comment">//读出logheader，如果没有需要恢复的块则n == 0</span><br>  install_trans(<span class="hljs-number">1</span>); <span class="hljs-comment">// n==0会直接跳出循环，否则将logged blocks写入到磁盘的相应位置</span><br>  <span class="hljs-built_in">log</span>.lh.n = <span class="hljs-number">0</span>;  <span class="hljs-comment">//恢复完成，设置值为0，如果此时断电再重启，由于log的值还没刷新到磁盘上去，所以仍然会执行install_trans，重复拷贝，这其实是一个可以优化的点</span><br>  write_head(); <span class="hljs-comment">// 清除旧日志</span><br>&#125;<br><br><span class="hljs-comment">// Read the log header from disk into the in-memory log header  </span><br><span class="hljs-type">static</span> <span class="hljs-type">void</span>  <br><span class="hljs-title function_">read_head</span><span class="hljs-params">(<span class="hljs-type">void</span>)</span>  <br>&#123;  <br>  <span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">buf</span> *<span class="hljs-title">buf</span> =</span> bread(<span class="hljs-built_in">log</span>.dev, <span class="hljs-built_in">log</span>.start);  <br>  <span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">logheader</span> *<span class="hljs-title">lh</span> =</span> (<span class="hljs-keyword">struct</span> logheader *) (buf-&gt;data);  <br>  <span class="hljs-type">int</span> i;  <br>  <span class="hljs-built_in">log</span>.lh.n = lh-&gt;n;  <br>  <span class="hljs-keyword">for</span> (i = <span class="hljs-number">0</span>; i &lt; <span class="hljs-built_in">log</span>.lh.n; i++) &#123;  <br>    <span class="hljs-built_in">log</span>.lh.block[i] = lh-&gt;block[i];  <br>  &#125;  <br>  brelse(buf);  <br>&#125;<br><br><span class="hljs-comment">// Copy committed blocks from log to their home location  </span><br><span class="hljs-type">static</span> <span class="hljs-type">void</span>  <br><span class="hljs-title function_">install_trans</span><span class="hljs-params">(<span class="hljs-type">int</span> recovering)</span>  <br>&#123;  <br>  <span class="hljs-type">int</span> tail;  <br><br><span class="hljs-comment">//需要写入的n块都紧挨着logheader块（也就是最前面的块），所以按顺序一个个遍历并执行拷贝操作即可</span><br>  <span class="hljs-keyword">for</span> (tail = <span class="hljs-number">0</span>; tail &lt; <span class="hljs-built_in">log</span>.lh.n; tail++) &#123;  <br>    <span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">buf</span> *<span class="hljs-title">lbuf</span> =</span> bread(<span class="hljs-built_in">log</span>.dev, <span class="hljs-built_in">log</span>.start+tail+<span class="hljs-number">1</span>); <span class="hljs-comment">// read log block  </span><br>    <span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">buf</span> *<span class="hljs-title">dbuf</span> =</span> bread(<span class="hljs-built_in">log</span>.dev, <span class="hljs-built_in">log</span>.lh.block[tail]); <span class="hljs-comment">// read dst  </span><br>    <span class="hljs-comment">//memmove(dst, src, n)，copy block to dst</span><br>    memmove(dbuf-&gt;data, lbuf-&gt;data, BSIZE);   <br>    bwrite(dbuf);  <span class="hljs-comment">// write dst to disk  </span><br>    <span class="hljs-keyword">if</span>(recovering == <span class="hljs-number">0</span>)  <br>      bunpin(dbuf);  <br>    brelse(lbuf);  <br>    brelse(dbuf);  <br>  &#125;  <br>&#125;<br><br><span class="hljs-comment">// Write in-memory log header to disk.  </span><br><span class="hljs-comment">// This is the true point at which the  </span><br><span class="hljs-comment">// current transaction commits.  </span><br><span class="hljs-type">static</span> <span class="hljs-type">void</span>  <br><span class="hljs-title function_">write_head</span><span class="hljs-params">(<span class="hljs-type">void</span>)</span>  <br>&#123;  <br>  <span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">buf</span> *<span class="hljs-title">buf</span> =</span> bread(<span class="hljs-built_in">log</span>.dev, <span class="hljs-built_in">log</span>.start);  <br>  <span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">logheader</span> *<span class="hljs-title">hb</span> =</span> (<span class="hljs-keyword">struct</span> logheader *) (buf-&gt;data);  <br>  <span class="hljs-type">int</span> i;  <br>  hb-&gt;n = <span class="hljs-built_in">log</span>.lh.n;  <br><span class="hljs-comment">// 更新每个log block对应的data block的块号，这一部分在系统恢复这一逻辑中是没啥用的，主要是在提交事务时有用，所以这里也有一个小的优化点</span><br>  <span class="hljs-keyword">for</span> (i = <span class="hljs-number">0</span>; i &lt; <span class="hljs-built_in">log</span>.lh.n; i++) &#123;  <br>    hb-&gt;block[i] = <span class="hljs-built_in">log</span>.lh.block[i];  <br>  &#125;  <br>  bwrite(buf);  <br>  <span class="hljs-comment">//到这里，整个恢复过程完成</span><br>  brelse(buf);  <br>&#125;<br></code></pre></td></tr></table></figure></p>
+<p>读出磁盘上的logheader，如果计数n=0，代表日志系统不需要进行恢复，因此跳过recovery继续启动；如果计数n不等于0，代表有需要重放的日志，因此我们回到数据日志四部曲中的加检查点，再次调用install_trans重新执行加检查点过程。最后在函数退出点，清除旧日志</p>
+<p>我们接下来分别来看，这三个操作是怎么执行的： - read_head：使用下层提供的bread读取日志区第一个块的内容到缓存buf（这里放着head），然后将值绑定到log结构体重，并调用brelse释放buf。</p>
+<ul>
+<li><p>install_trans：需要写入的n块都紧挨着logheader块（也就是最前面的块），所以按顺序一个个遍历并执行拷贝操作即可，因为是拷贝过程，所以涉及到从日志块中读，往磁盘data块中写</p></li>
+<li><p>write_head：日志写入完成，将更新后的logheader写回磁盘上</p></li>
+</ul>
+<p>（2）提交事务</p>
+<p>提交事务就需要涉及到具体的应用场景了 <figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><code class="hljs c"><br>begin_op(); <br><span class="hljs-comment">//... </span><br>bp = bread(...); <br>bp-&gt;data[...] = ...; <span class="hljs-comment">// modify bp-&gt;data[] </span><br>log_write(bp); <span class="hljs-comment">// bp has been modified, so put it in log </span><br>brelse(bp); <span class="hljs-comment">// release bp </span><br><span class="hljs-comment">// ... </span><br>end_op();<br><br></code></pre></td></tr></table></figure></p>
+<p>begin_op、log_write和end_op是日志层提供给上层使用的接口，</p>
+<p> 和 begin_op和 end_op 配套使用，表明文件系统调用的开始和结束（每次文件调用都需要使用） <figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-comment">// called at the start of each FS system call.  </span><br><span class="hljs-type">void</span>  <br><span class="hljs-title function_">begin_op</span><span class="hljs-params">(<span class="hljs-type">void</span>)</span>  <br>&#123;  <br>  acquire(&amp;<span class="hljs-built_in">log</span>.lock);  <br>  <span class="hljs-keyword">while</span>(<span class="hljs-number">1</span>)&#123;  <br>    <span class="hljs-keyword">if</span>(<span class="hljs-built_in">log</span>.committing)&#123;   <span class="hljs-comment">//如果有其他线程正在提交日志，则休眠</span><br>      sleep(&amp;<span class="hljs-built_in">log</span>, &amp;<span class="hljs-built_in">log</span>.lock);  <br>    &#125; <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span>(<span class="hljs-built_in">log</span>.lh.n + (<span class="hljs-built_in">log</span>.outstanding+<span class="hljs-number">1</span>)*MAXOPBLOCKS &gt; LOGSIZE)&#123;  <br>	   <span class="hljs-comment">//如果此次文件系统调用涉及的块数超过日志块数上限，休眠</span><br>      sleep(&amp;<span class="hljs-built_in">log</span>, &amp;<span class="hljs-built_in">log</span>.lock);  <br>    &#125; <span class="hljs-keyword">else</span> &#123;  <br>      <span class="hljs-built_in">log</span>.outstanding += <span class="hljs-number">1</span>;  <br>      release(&amp;<span class="hljs-built_in">log</span>.lock);  <br>      <span class="hljs-keyword">break</span>;  <br>    &#125;  <br>  &#125;  <br>&#125;<br><br></code></pre></td></tr></table></figure></p>
+<p>begin_op的目的就是保证事务提交的原子性，在一个线程提交事务时（committing会在commit操作前由end_op标记），其他线程是不允许干涉的，outstanding对于log结构体就像refcnt对于buf结构体，线程可以并发的发起对文件的修改，这些修改都会原子性的反应在log.lh上，只有当outstanding</p>
+<p>在通过outstanding确保事务操作不会被打扰后，可以调用log_write执行写操作了。到了日志层，我们需要转换思想，不再使用buffer cache层中的bwrite，而是要使用log_write，它再log层对bwrite进行了封装，会检查写日志操作是否合法。 <figure class="highlight arcade"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs arcade">一个很好的想象方法时，<span class="hljs-built_in">buffer</span> cache层里只有buf，也就是一个缓存块，读取都是针对它的，但是在<span class="hljs-built_in">log</span>层，每次写操作都涉及到了<span class="hljs-built_in">log</span>块和buf，包含了两个步骤了，因此视角会高一些，多了一些检测合法性的操作，不能再单纯的调用bwrite了<br></code></pre></td></tr></table></figure></p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-type">void</span>  <br><span class="hljs-title function_">log_write</span><span class="hljs-params">(<span class="hljs-keyword">struct</span> buf *b)</span>  <br>&#123;  <br>  <span class="hljs-type">int</span> i;  <br>  <br>  acquire(&amp;<span class="hljs-built_in">log</span>.lock);  <br>  <span class="hljs-keyword">if</span> (<span class="hljs-built_in">log</span>.lh.n &gt;= LOGSIZE || <span class="hljs-built_in">log</span>.lh.n &gt;= <span class="hljs-built_in">log</span>.size - <span class="hljs-number">1</span>)  <br>    panic(<span class="hljs-string">&quot;too big a transaction&quot;</span>);  <br>  <span class="hljs-keyword">if</span> (<span class="hljs-built_in">log</span>.outstanding &lt; <span class="hljs-number">1</span>)  <br>    panic(<span class="hljs-string">&quot;log_write outside of trans&quot;</span>);  <br>  <br>  <span class="hljs-keyword">for</span> (i = <span class="hljs-number">0</span>; i &lt; <span class="hljs-built_in">log</span>.lh.n; i++) &#123;  <br>    <span class="hljs-keyword">if</span> (<span class="hljs-built_in">log</span>.lh.block[i] == b-&gt;blockno)   <span class="hljs-comment">// log absorption  </span><br>      <span class="hljs-keyword">break</span>;  <br>  &#125;  <br>  <span class="hljs-built_in">log</span>.lh.block[i] = b-&gt;blockno;  <br>  <span class="hljs-keyword">if</span> (i == <span class="hljs-built_in">log</span>.lh.n) &#123;  <span class="hljs-comment">// Add new block to log?  </span><br>	bpin(b);  <span class="hljs-comment">//将b的refcnt保证原子性的情况下加1，因为在log_write结束后会释放b，但此时只是讲b的修改记录在了logheader中，refcnt不为0可以保证b不会从LRU中移除。</span><br>	<span class="hljs-built_in">log</span>.lh.n++;  <br>  &#125;  <br>  release(&amp;<span class="hljs-built_in">log</span>.lock);  <br>&#125;<br></code></pre></td></tr></table></figure>
+<p>log_write抛开大量的检查之外，其实主要内容就是维护了log.lh.block数组，建立了日志块和data块之间的映射关系。注意：此时log.lh还没有刷到日志块中，因此此时断电会认为写操作失败，什么事情都没有发生，保证了一致性。</p>
+<p>在建立好了映射关系之后，就可以准备将它刷新到日志块上去 <figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-comment">// called at the end of each FS system call.  </span><br><span class="hljs-comment">// commits if this was the last outstanding operation.  </span><br><span class="hljs-type">void</span>  <br><span class="hljs-title function_">end_op</span><span class="hljs-params">(<span class="hljs-type">void</span>)</span>  <br>&#123;  <br>  <span class="hljs-type">int</span> do_commit = <span class="hljs-number">0</span>;  <br>  <br>  acquire(&amp;<span class="hljs-built_in">log</span>.lock);  <br>  <span class="hljs-built_in">log</span>.outstanding -= <span class="hljs-number">1</span>;  <br>  <span class="hljs-keyword">if</span>(<span class="hljs-built_in">log</span>.committing)  <br>    panic(<span class="hljs-string">&quot;log.committing&quot;</span>);  <br>  <span class="hljs-keyword">if</span>(<span class="hljs-built_in">log</span>.outstanding == <span class="hljs-number">0</span>)&#123;  <br>    do_commit = <span class="hljs-number">1</span>;  <br>    <span class="hljs-built_in">log</span>.committing = <span class="hljs-number">1</span>;   <span class="hljs-comment">//开始提交事务，此时的log是不能被操作的</span><br>  &#125; <span class="hljs-keyword">else</span> &#123;  <br>    <span class="hljs-comment">// begin_op() may be waiting for log space,  </span><br>    <span class="hljs-comment">// and decrementing log.outstanding has decreased    // the amount of reserved space.    </span><br>    <span class="hljs-comment">// 如果当前还有其它FS调用正在执行，那么我们先不急着提交 </span><br>    <span class="hljs-comment">// 而是留给最后一个FS调用负责提交所有事务，这是group commit </span><br>    <span class="hljs-comment">// 此外，可能有其它FS调用在begin_op时因空间不足而被挂起 </span><br>    <span class="hljs-comment">// 现在可能有空间可用，唤醒一个被挂起的FS调用</span><br>    wakeup(&amp;<span class="hljs-built_in">log</span>);  <br>  &#125;  <br>  release(&amp;<span class="hljs-built_in">log</span>.lock);  <br>  <br>  <span class="hljs-keyword">if</span>(do_commit)&#123;  <br>    <span class="hljs-comment">// call commit w/o holding locks, since not allowed  </span><br>    <span class="hljs-comment">// to sleep with locks.    </span><br>    commit();  <br>    acquire(&amp;<span class="hljs-built_in">log</span>.lock);  <br>    <span class="hljs-built_in">log</span>.committing = <span class="hljs-number">0</span>;   <span class="hljs-comment">//提交完成</span><br>    wakeup(&amp;<span class="hljs-built_in">log</span>);  <br>    release(&amp;<span class="hljs-built_in">log</span>.lock);   <br>  &#125;  <br>&#125;<br></code></pre></td></tr></table></figure></p>
+<p>end_op的逻辑也很简单，除开提交事务（也就是刷新日志到日志块上这个过程）前的检测，就是调用了commit函数。<strong>注意：从代码可以看出，提交事务其实是group commit，因为当多个线程并发访问log，outstanding&gt;1，但并不是每个线程都要发起一次事务，如果察觉到还有其他线程在操作log（即outstanding != 0），则直接return，该线程进行的读写操作会由最后一个线程帮忙一起完成。</strong></p>
+<p><strong>但是这样其实是有问题的，如果一直有线程访问log，那么会导致outstanding过很久也不为0，logheader也就迟迟不能刷新到磁盘中去，这样崩溃时虽然不会导致一致性问题，但会导致大量的既往操作被丢失，也是不合适，一个优化的方式是添加计时器，当达到一定计时条件时，不再允许outstanding的增加（即不再允许新的操作），然后等现有的操作执行完后commit。 </strong></p>
+<p>（3）commit 还记得前面提到的日志四部曲嘛：日志写入，日志提交，加检查点，释放 让我们来看commit代码是怎么做的： <figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-type">static</span> <span class="hljs-type">void</span>  <br><span class="hljs-title function_">commit</span><span class="hljs-params">()</span>  <br>&#123;  <br>  <span class="hljs-keyword">if</span> (<span class="hljs-built_in">log</span>.lh.n &gt; <span class="hljs-number">0</span>) &#123;  <br>    write_log();     <span class="hljs-comment">// 日志写入，负责将logheader里面的data数据搬运到log块中 </span><br>    write_head();    <span class="hljs-comment">// 日志提交，前面只提交data数据，这里提交log header,即第一个日志块   </span><br>    <br>    <span class="hljs-comment">// 更新的logheader成功写进磁盘后，代表事务提交成功 </span><br>    <span class="hljs-comment">// 因此从这里开始，到更新完成日志被清除之前， </span><br>    <span class="hljs-comment">// 如果发生了crash，那么恢复时就会重复log中的操作</span><br><br>    install_trans(<span class="hljs-number">0</span>); <span class="hljs-comment">// 加检查点，也就是执行从日志块到data块的搬运，在这里终于完成了真正的数据写入磁盘的操作，前面的部分都是在保证崩溃一致性</span><br>    <br>    <span class="hljs-built_in">log</span>.lh.n = <span class="hljs-number">0</span>;  <br>    write_head();    <span class="hljs-comment">// 释放，因为n已经被标记为0，所以日志区域中的块现在可以被重用。注意，我们应该等待这一步完成之后，才能回到end_op中，将commiting置0，表示日志系统提交完成并处于空闲。这个顺序很重要，先释放旧日志块再开始处理新事务，否则后续发生crash时，可能会使用前一个事务的日志块来恢复</span><br>&#125;<br></code></pre></td></tr></table></figure></p>
+<p>首先是write_log日志写入： <figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-comment">// Copy modified blocks from cache to log.  </span><br><span class="hljs-type">static</span> <span class="hljs-type">void</span>  <br><span class="hljs-title function_">write_log</span><span class="hljs-params">(<span class="hljs-type">void</span>)</span>  <br>&#123;  <br>  <span class="hljs-type">int</span> tail;  <br>  <br>  <span class="hljs-keyword">for</span> (tail = <span class="hljs-number">0</span>; tail &lt; <span class="hljs-built_in">log</span>.lh.n; tail++) &#123;  <br>    <span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">buf</span> *<span class="hljs-title">to</span> =</span> bread(<span class="hljs-built_in">log</span>.dev, <span class="hljs-built_in">log</span>.start+tail+<span class="hljs-number">1</span>); <span class="hljs-comment">// log block  </span><br>    <span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">buf</span> *<span class="hljs-title">from</span> =</span> bread(<span class="hljs-built_in">log</span>.dev, <span class="hljs-built_in">log</span>.lh.block[tail]); <span class="hljs-comment">// cache block  </span><br>    memmove(to-&gt;data, from-&gt;data, BSIZE); <br>    <span class="hljs-comment">// 从from复制到to，使用memmove后，现在两个缓存块副本都是更新后的状态</span><br><br>    bwrite(to);  <span class="hljs-comment">// write the log  </span><br>    brelse(from);  <br>    brelse(to);  <br>  &#125;  <br>&#125;<br></code></pre></td></tr></table></figure></p>
+<p>然后是write_head日志提交，这个在崩溃恢复那里已经出现过了： <figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-comment">// Write in-memory log header to disk.  </span><br><span class="hljs-comment">// This is the true point at which the  </span><br><span class="hljs-comment">// current transaction commits.  </span><br><span class="hljs-type">static</span> <span class="hljs-type">void</span>  <br><span class="hljs-title function_">write_head</span><span class="hljs-params">(<span class="hljs-type">void</span>)</span>  <br>&#123;  <br>  <span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">buf</span> *<span class="hljs-title">buf</span> =</span> bread(<span class="hljs-built_in">log</span>.dev, <span class="hljs-built_in">log</span>.start);  <br>  <span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">logheader</span> *<span class="hljs-title">hb</span> =</span> (<span class="hljs-keyword">struct</span> logheader *) (buf-&gt;data);  <br>  <span class="hljs-type">int</span> i;  <br>  hb-&gt;n = <span class="hljs-built_in">log</span>.lh.n;  <br><span class="hljs-comment">// 更新每个log block对应的data block的块号</span><br>  <span class="hljs-keyword">for</span> (i = <span class="hljs-number">0</span>; i &lt; <span class="hljs-built_in">log</span>.lh.n; i++) &#123;  <br>    hb-&gt;block[i] = <span class="hljs-built_in">log</span>.lh.block[i];  <br>  &#125;  <br><span class="hljs-comment">// 将更新后的logheader写回磁盘上</span><br><br>  bwrite(buf);  <span class="hljs-comment">//到一步完成，整个日志提交完成，不再害怕硬盘崩溃</span><br>  brelse(buf);  <br>&#125;<br></code></pre></td></tr></table></figure></p>
+<p>第三步是install_trans加检查点，也就是完成从日志块到数据块的搬运（想象一下磁盘的分布图）</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-comment">// Copy committed blocks from log to their home location  </span><br><span class="hljs-type">static</span> <span class="hljs-type">void</span>  <br><span class="hljs-title function_">install_trans</span><span class="hljs-params">(<span class="hljs-type">int</span> recovering)</span>  <br>&#123;  <br>  <span class="hljs-type">int</span> tail;  <br>  <br>  <span class="hljs-keyword">for</span> (tail = <span class="hljs-number">0</span>; tail &lt; <span class="hljs-built_in">log</span>.lh.n; tail++) &#123;  <br>    <span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">buf</span> *<span class="hljs-title">lbuf</span> =</span> bread(<span class="hljs-built_in">log</span>.dev, <span class="hljs-built_in">log</span>.start+tail+<span class="hljs-number">1</span>); <span class="hljs-comment">// read log block  </span><br>    <span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">buf</span> *<span class="hljs-title">dbuf</span> =</span> bread(<span class="hljs-built_in">log</span>.dev, <span class="hljs-built_in">log</span>.lh.block[tail]); <span class="hljs-comment">// read dst  </span><br>    <span class="hljs-comment">// 和write_log不同之处在于，写入磁盘时的目的地不同 </span><br>    <span class="hljs-comment">// write_log写入的是磁盘上的日志区域logged blocks， </span><br>    <span class="hljs-comment">// install_trans是读取logged blocks，写入data blocks</span><br>    memmove(dbuf-&gt;data, lbuf-&gt;data, BSIZE);  <span class="hljs-comment">// copy block to dst  </span><br>    bwrite(dbuf);  <span class="hljs-comment">// write dst to disk  </span><br><br>    <span class="hljs-comment">// 在log_write中bpin了相应的缓存块，这里bunpin它</span><br>    <span class="hljs-comment">// 因此在这之后，这一缓存块可以被Buffer Cache回收</span><br>    <span class="hljs-keyword">if</span>(recovering == <span class="hljs-number">0</span>)  <br>      bunpin(dbuf);  <br>    brelse(lbuf);  <br>    brelse(dbuf);  <br>  &#125;  <br>&#125;<br></code></pre></td></tr></table></figure>
+<p>最后一步是释放日志快，同样是调用write_head，因为n已经被标记为0，所以日志区域中的块现在可以被重用。注意，我们应该等待这一步完成之后，才能回到end_op中，将commiting置0，表示日志系统提交完成并处于空闲。这个顺序很重要，先释放旧日志块再开始处理新事务，否则后续发生crash时，可能会使用前一个事务的日志块来恢复</p>
+<h4 id="小总结-1">小总结</h4>
+<p>log层的代码很多很复杂，而且有大量的合法性检测，但抛开表象往深处看： （1）这一层其实主要就是提供了崩溃一致性的服务，这个服务说大白话就是写入data数据块前，先写入到日志快，这样即使磁盘崩溃，要么可以恢复，要么可以当作没发生，保证了一致性。 （2）崩溃一致性服务涉及到的核心结构是log，它在操作系统中唯一存在，记录日志块的元数据（锁、所在设备、起始位置、块数量、并发访问数量、是否正在提交），包含了唯一的logheader，记录了日志块到data块的映射关系 （3）崩溃一致性服务可以按照步骤拆分为1+4，即准备过程 + 日志四部曲。 - 准备过程核心为三个函数：begin_op，log_write，end_op，负责建立logheader中的block映射关系并保证事务提交的原子性 - 日志四部曲为四个步骤：write_log（日志写入），write_head（日志提交），install_trans（加检查点），标记n=0（释放）。 （4）优化：group commit的机制可以降低事务提交的次数，防止过多的IO操作，但是仅使用outstanding的值作为判断提交的条件过于单一，可能导致长时间无法提交事务，可以引入时间来优化这一点。</p>
+<h4 id="管理空闲的块">管理空闲的块</h4>
+<p>前面只讲到了如何写入和读出一个块，但是没有讲当上层服务需要一个新磁盘块时应该怎么做。具体有两种方案： （1）空闲链表（×）；内存是使用空闲链表的方式管理的，每次需要空间就分配一个出去，但这种方法不适合磁盘，会导致空闲表过大或者链式结构过长（不适合处理大量的空闲数据） （2）位图法（√）；专门使用一个块来表示其他块的使用情况。一个 bit位表示一个磁盘块的使用情况，1 代表使用，0 代表空闲。</p>
+<p>balloc从对应磁盘设备上分配一个块，涉及到了对位图的读写 <figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-meta">#<span class="hljs-keyword">define</span> BSIZE 1024  <span class="hljs-comment">// block size</span></span><br><br><span class="hljs-comment">// 计算每个BLOCK可以包含多少个bitmap位</span><br><span class="hljs-comment">// BLOCK SIZE = 1024，所以一个BLOCK可以包含8192个bit</span><br><span class="hljs-comment">// 即BPB = 8192</span><br><span class="hljs-meta">#<span class="hljs-keyword">define</span> BPB           (BSIZE*8)</span><br><br><span class="hljs-comment">// 给定block number b，b/BPB表示该块的bitmap位应该在哪个bitmap block上</span><br><span class="hljs-comment">// 再加上bitmap区域的起始位置，得到最终的bitmap block number</span><br><span class="hljs-meta">#<span class="hljs-keyword">define</span> BBLOCK(b, sb) ((b)/BPB + sb.bmapstart)</span><br><br><span class="hljs-comment">// Allocate a zeroed disk block.</span><br><span class="hljs-type">static</span> uint<br><span class="hljs-title function_">balloc</span><span class="hljs-params">(uint dev)</span><br>&#123;<br>  <span class="hljs-type">int</span> b, bi, m;<br>  <span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">buf</span> *<span class="hljs-title">bp</span>;</span><br><br>  bp = <span class="hljs-number">0</span>;<br>  <span class="hljs-comment">//BPB表示一个bitmap块可以表示块的数量，这里的遍历范围很大，但其实真正的上限是bitmap块的数量</span><br>  <span class="hljs-keyword">for</span>(b = <span class="hljs-number">0</span>; b &lt; sb.size; b += BPB)&#123;<br>    <span class="hljs-comment">// 外层循环选中一个bitmap block</span><br>    <span class="hljs-comment">// 计算bitmap块号并读取到缓冲区，该块号表示块号b的状态（是否可用）</span><br>    bp = bread(dev, BBLOCK(b, sb));  <span class="hljs-comment">//bp表示的当前bitmap块的buf</span><br>    <span class="hljs-keyword">for</span>(bi = <span class="hljs-number">0</span>; bi &lt; BPB &amp;&amp; b + bi &lt; sb.size; bi++)&#123;<br>      <span class="hljs-comment">// 内层循环一个个检查bitmap block里面的位</span><br>      m = <span class="hljs-number">1</span> &lt;&lt; (bi % <span class="hljs-number">8</span>);<br>      <span class="hljs-keyword">if</span>((bp-&gt;data[bi/<span class="hljs-number">8</span>] &amp; m) == <span class="hljs-number">0</span>)&#123;  <span class="hljs-comment">// Is block free?</span><br>        <span class="hljs-comment">// bi/8表示在1024个位置里面的第几个位置</span><br>        <span class="hljs-comment">// 如果空闲，将对应的磁盘块设为已分配</span><br>        bp-&gt;data[bi/<span class="hljs-number">8</span>] |= m;  <span class="hljs-comment">// Mark block in use.</span><br>        log_write(bp);  <span class="hljs-comment">//将修改后的位图刷回到磁盘</span><br>        brelse(bp);     <br>        bzero(dev, b + bi);  <span class="hljs-comment">// 清0新分配的磁盘块，防止旧内容或垃圾数据被使用</span><br>	<span class="hljs-comment">// balloc修改的是bitmap block的内容，返回的是新分配磁盘块的块号，前文别混淆了</span><br>        <span class="hljs-keyword">return</span> b + bi;<br>      &#125;<br>    &#125;<br>    brelse(bp);<br>  &#125;<br>  panic(<span class="hljs-string">&quot;balloc: out of blocks&quot;</span>);<br>&#125;<br></code></pre></td></tr></table></figure></p>
+<p>总的来说，balloc做了两件事： - 双层遍历每个bitmap块的每个bit位，找到空闲的block设置为已分配 - 刷新磁盘上的bitmap块 - 返回新分配的磁盘块的块号</p>
+<p>bfree的动作正好与balloc相反，这两个操作balloc和bfree应该在同一个事务中被调用 <figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-comment">// Free a disk block.</span><br><span class="hljs-type">static</span> <span class="hljs-type">void</span><br><span class="hljs-title function_">bfree</span><span class="hljs-params">(<span class="hljs-type">int</span> dev, uint b)</span><br>&#123;<br>  <span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">buf</span> *<span class="hljs-title">bp</span>;</span><br>  <span class="hljs-type">int</span> bi, m;<br><br>  <span class="hljs-comment">// 同样地，这里也隐含了同步机制</span><br>  <span class="hljs-comment">// 给定block number b，返回所在的bitmap block number</span><br>  bp = bread(dev, BBLOCK(b, sb));<br>  <span class="hljs-comment">// 确定是bitmap里面的第几位</span><br>  <span class="hljs-comment">// 以下类似balloc</span><br>  <span class="hljs-comment">// 在bitmap中找到该块的对应位置，置0</span><br>  bi = b % BPB;<br>  m = <span class="hljs-number">1</span> &lt;&lt; (bi % <span class="hljs-number">8</span>);<br>  <span class="hljs-keyword">if</span>((bp-&gt;data[bi/<span class="hljs-number">8</span>] &amp; m) == <span class="hljs-number">0</span>)<br>    panic(<span class="hljs-string">&quot;freeing free block&quot;</span>);<br>  bp-&gt;data[bi/<span class="hljs-number">8</span>] &amp;= ~m;<br>  log_write(bp);<br>  brelse(bp);<br>&#125;<br></code></pre></td></tr></table></figure></p>
+<h2 id="总结">总结</h2>
+<p>本章包含了文件系统中的buffer cache层和log层</p>
+<p>buffer cache层主要提供磁盘并发访问的接口，利用磁盘块号，使得上层像直接操作磁盘一样操作在内存中的缓存，核心数据结构为一个bcache结构体和多个buf穿成链表构成的LRU，核心操作为bread，bget，bwrite</p>
+<p>log层主要提供了崩溃一致性的服务，核心数据结构为一个log和它包含在内的logheader。核心操作为保证事务提交原子性的begin_op和end_op，建立日志块和数据块映射关系的log_write，负责完成数据刷盘操作的日志四部曲write_log，write_head，install_trans，标记n=0。</p>
+<p><strong>这两层包含在一起为更上层提供了安全访问磁盘的API接口</strong></p>
+
+                
+              </div>
+            
+            <hr/>
+            <div>
+              <div class="post-metas my-3">
+  
+    <div class="post-meta mr-3 d-flex align-items-center">
+      <i class="iconfont icon-category"></i>
+      
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/" class="category-chain-item">操作系统</a>
+  
+  
+
+      </span>
+    
+  
+</span>
+
+    </div>
+  
+  
+    <div class="post-meta">
+      <i class="iconfont icon-tags"></i>
+      
+        <a href="/tags/xv6/" class="print-no-link">#xv6</a>
+      
+    </div>
+  
+</div>
+
+
+              
+  
+
+  <div class="license-box my-3">
+    <div class="license-title">
+      <div>xv6-book-Chapter8 文件系统 part1</div>
+      <div>http://example.com/2024/04/15/xv6-book-Chapter8-文件系统-part1/</div>
+    </div>
+    <div class="license-meta">
+      
+        <div class="license-meta-item">
+          <div>作者</div>
+          <div>Cygnus</div>
+        </div>
+      
+      
+        <div class="license-meta-item license-meta-date">
+          <div>发布于</div>
+          <div>2024年4月15日</div>
+        </div>
+      
+      
+      
+        <div class="license-meta-item">
+          <div>许可协议</div>
+          <div>
+            
+              
+              
+                <a class="print-no-link" target="_blank" href="https://creativecommons.org/licenses/by/4.0/">
+                  <span class="hint--top hint--rounded" aria-label="BY - 署名">
+                    <i class="iconfont icon-by"></i>
+                  </span>
+                </a>
+              
+            
+          </div>
+        </div>
+      
+    </div>
+    <div class="license-icon iconfont"></div>
+  </div>
+
+
+
+              
+                <div class="post-prevnext my-3">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/2024/04/15/xv6-book-Chapter8-%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F-part2/" title="xv6-book-Chapter8 文件系统 part2">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">xv6-book-Chapter8 文件系统 part2</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2024/04/15/xv6-book-Chapter7-%E8%BF%9B%E7%A8%8B%E8%B0%83%E5%BA%A6/" title="xv6-book-Chapter7 进程调度">
+                        <span class="hidden-mobile">xv6-book-Chapter7 进程调度</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar" style="margin-left: -1rem">
+    <div id="toc">
+  <p class="toc-header">
+    <i class="iconfont icon-list"></i>
+    <span>目录</span>
+  </p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+
+
+  </aside>
+
+
+    </div>
+  </div>
+</div>
+
+
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+
+
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v" for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    
+
+    
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+  
+  
+  
+  
+</div>
+
+  </footer>
+
+  <!-- Scripts -->
+  
+  <script  src="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://lib.baomitu.com/jquery/3.6.4/jquery.min.js" ></script>
+<script  src="https://lib.baomitu.com/twitter-bootstrap/4.6.1/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+
+  <script  src="https://lib.baomitu.com/typed.js/2.0.12/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var subtitle = document.getElementById('subtitle');
+      if (!subtitle || !typing) {
+        return;
+      }
+      var text = subtitle.getAttribute('data-typed-text');
+      
+        typing(text);
+      
+    })(window, document);
+  </script>
+
+
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/tocbot/4.20.1/tocbot.min.js', function() {
+    var toc = jQuery('#toc');
+    if (toc.length === 0 || !window.tocbot) { return; }
+    var boardCtn = jQuery('#board-ctn');
+    var boardTop = boardCtn.offset().top;
+
+    window.tocbot.init(Object.assign({
+      tocSelector     : '#toc-body',
+      contentSelector : '.markdown-body',
+      linkClass       : 'tocbot-link',
+      activeLinkClass : 'tocbot-active-link',
+      listClass       : 'tocbot-list',
+      isCollapsedClass: 'tocbot-is-collapsed',
+      collapsibleClass: 'tocbot-is-collapsible',
+      scrollSmooth    : true,
+      includeTitleTags: true,
+      headingsOffset  : -boardTop,
+    }, CONFIG.toc));
+    if (toc.find('.toc-list-item').length > 0) {
+      toc.css('visibility', 'visible');
+    }
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('tocbot' in window) {
+        tocbot.refresh();
+        var toc = jQuery('#toc');
+        if (toc.length === 0 || !tocbot) {
+          return;
+        }
+        if (toc.find('.toc-list-item').length > 0) {
+          toc.css('visibility', 'visible');
+        }
+      }
+    });
+  });
+</script>
+
+
+  <script src=https://lib.baomitu.com/clipboard.js/2.0.11/clipboard.min.js></script>
+
+  <script>Fluid.plugins.codeWidget();</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/anchor-js/4.3.1/anchor.min.js', function() {
+    window.anchors.options = {
+      placement: CONFIG.anchorjs.placement,
+      visible  : CONFIG.anchorjs.visible
+    };
+    if (CONFIG.anchorjs.icon) {
+      window.anchors.options.icon = CONFIG.anchorjs.icon;
+    }
+    var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+    var res = [];
+    for (var item of el) {
+      res.push('.markdown-body > ' + item.trim());
+    }
+    if (CONFIG.anchorjs.placement === 'left') {
+      window.anchors.options.class = 'anchorjs-link-left';
+    }
+    window.anchors.add(res.join(', '));
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('anchors' in window) {
+        anchors.removeAll();
+        var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+        var res = [];
+        for (var item of el) {
+          res.push('.markdown-body > ' + item.trim());
+        }
+        if (CONFIG.anchorjs.placement === 'left') {
+          anchors.options.class = 'anchorjs-link-left';
+        }
+        anchors.add(res.join(', '));
+      }
+    });
+  });
+</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.js', function() {
+    Fluid.plugins.fancyBox();
+  });
+</script>
+
+
+  <script>Fluid.plugins.imageCaption();</script>
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+
+
+<!-- 主题的启动项，将它保持在最底部 -->
+<!-- the boot of the theme, keep it at the bottom -->
+<script  src="/js/boot.js" ></script>
+
+
+  
+
+  <noscript>
+    <div class="noscript-warning">博客在允许 JavaScript 运行的环境下浏览效果更佳</div>
+  </noscript>
+</body>
+</html>

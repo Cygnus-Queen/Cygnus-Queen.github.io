@@ -224,6 +224,250 @@
     <article class="col-12 col-md-12 mx-auto index-info">
       <h2 class="index-header">
         
+        <a href="/2024/04/15/xv6-book-Chapter8-%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F-part3/" target="_self">
+          xv6-book-Chapter8 文件系统 part3
+        </a>
+      </h2>
+
+      
+      <a class="index-excerpt index-excerpt__noimg" href="/2024/04/15/xv6-book-Chapter8-%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F-part3/" target="_self">
+        <div>
+          Chapter8 File System part3 Pathname Layer 在目录层中封装了dirlookup方法，给定一个目录inode，在其中查找或添加相应条目 但是该方法只能查找当前目录，Pathname 层提供了更完整的路径名检索功能，这个过程需要调用一连串的dirlookup，每个目录名都需要一次。注意：这个过程是为了给open等文件曾的操作提供服务，而不是实现查找功能。例
+        </div>
+      </a>
+
+      <div class="index-btm post-metas">
+        
+          <div class="post-meta mr-3">
+            <i class="iconfont icon-date"></i>
+            <time datetime="2024-04-15 22:16" pubdate>
+              2024-04-15
+            </time>
+          </div>
+        
+        
+          <div class="post-meta mr-3 d-flex align-items-center">
+            <i class="iconfont icon-category"></i>
+            
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/" class="category-chain-item">操作系统</a>
+  
+  
+
+      </span>
+    
+  
+</span>
+
+          </div>
+        
+        
+          <div class="post-meta">
+            <i class="iconfont icon-tags"></i>
+            
+              <a href="/tags/xv6/">#xv6</a>
+            
+          </div>
+        
+      </div>
+    </article>
+  </div>
+
+  <div class="row mx-auto index-card">
+    
+    
+    <article class="col-12 col-md-12 mx-auto index-info">
+      <h2 class="index-header">
+        
+        <a href="/2024/04/15/xv6-book-Chapter8-%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F-part2/" target="_self">
+          xv6-book-Chapter8 文件系统 part2
+        </a>
+      </h2>
+
+      
+      <a class="index-excerpt index-excerpt__noimg" href="/2024/04/15/xv6-book-Chapter8-%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F-part2/" target="_self">
+        <div>
+          Chapter8 File System part2 前文讲到了buffer cache层和log层都是以块的形式进行服务，但是一个大文件完全由可能包含多个块，因此我们还需对多个块进行管理，也就是将多个块抽象成新的数据结构，这就是inode层的工作。 不知道有多少人听说过文件是inode，文件夹是特殊的inode这句话。这句话一直让我很费解，我始终不理解文件到底是一个什么概念，也不知道inod
+        </div>
+      </a>
+
+      <div class="index-btm post-metas">
+        
+          <div class="post-meta mr-3">
+            <i class="iconfont icon-date"></i>
+            <time datetime="2024-04-15 22:16" pubdate>
+              2024-04-15
+            </time>
+          </div>
+        
+        
+          <div class="post-meta mr-3 d-flex align-items-center">
+            <i class="iconfont icon-category"></i>
+            
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/" class="category-chain-item">操作系统</a>
+  
+  
+
+      </span>
+    
+  
+</span>
+
+          </div>
+        
+        
+          <div class="post-meta">
+            <i class="iconfont icon-tags"></i>
+            
+              <a href="/tags/xv6/">#xv6</a>
+            
+          </div>
+        
+      </div>
+    </article>
+  </div>
+
+  <div class="row mx-auto index-card">
+    
+    
+    <article class="col-12 col-md-12 mx-auto index-info">
+      <h2 class="index-header">
+        
+        <a href="/2024/04/15/xv6-book-Chapter8-%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F-part1/" target="_self">
+          xv6-book-Chapter8 文件系统 part1
+        </a>
+      </h2>
+
+      
+      <a class="index-excerpt index-excerpt__noimg" href="/2024/04/15/xv6-book-Chapter8-%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F-part1/" target="_self">
+        <div>
+          Chapter8 File System part1 文件系统是操作系统持久化的一部分，是对文件的组织管理，整体可以抽象为7层，底层为上层提供服务，系统的设计思路和很多数据库都有相似的地方。  我将整个文件系统各层的目的总结如下：  Disk Layer，与QEMU仿真的虚拟磁盘打交道，往磁盘上读或写一些块，提供了真正读写磁盘的函数。 Buffer Cache Layer，维护了一个bc
+        </div>
+      </a>
+
+      <div class="index-btm post-metas">
+        
+          <div class="post-meta mr-3">
+            <i class="iconfont icon-date"></i>
+            <time datetime="2024-04-15 22:16" pubdate>
+              2024-04-15
+            </time>
+          </div>
+        
+        
+          <div class="post-meta mr-3 d-flex align-items-center">
+            <i class="iconfont icon-category"></i>
+            
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/" class="category-chain-item">操作系统</a>
+  
+  
+
+      </span>
+    
+  
+</span>
+
+          </div>
+        
+        
+          <div class="post-meta">
+            <i class="iconfont icon-tags"></i>
+            
+              <a href="/tags/xv6/">#xv6</a>
+            
+          </div>
+        
+      </div>
+    </article>
+  </div>
+
+  <div class="row mx-auto index-card">
+    
+    
+    <article class="col-12 col-md-12 mx-auto index-info">
+      <h2 class="index-header">
+        
+        <a href="/2024/04/15/xv6-book-Chapter7-%E8%BF%9B%E7%A8%8B%E8%B0%83%E5%BA%A6/" target="_self">
+          xv6-book-Chapter7 进程调度
+        </a>
+      </h2>
+
+      
+      <a class="index-excerpt index-excerpt__noimg" href="/2024/04/15/xv6-book-Chapter7-%E8%BF%9B%E7%A8%8B%E8%B0%83%E5%BA%A6/" target="_self">
+        <div>
+          Chapter7 进程调度 操作系统的三大核心：虚拟化、并发、持久化。调度归属于CPU虚拟化。 整个调度的过程可以通过一张图来表示，当看不懂下文的内容时，不妨回来看看图  调度是什么？在什么时候发生？ 调度的本质是CPU虚拟化，正如通过使用页表，每个进程有了自己拥有大量物理内存的假象，通过调度，每个进程也有了自己独占CPU的假象。 针对现代操作系统，在两种情况下会发生调度 （1）进程主
+        </div>
+      </a>
+
+      <div class="index-btm post-metas">
+        
+          <div class="post-meta mr-3">
+            <i class="iconfont icon-date"></i>
+            <time datetime="2024-04-15 22:13" pubdate>
+              2024-04-15
+            </time>
+          </div>
+        
+        
+          <div class="post-meta mr-3 d-flex align-items-center">
+            <i class="iconfont icon-category"></i>
+            
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/" class="category-chain-item">操作系统</a>
+  
+  
+
+      </span>
+    
+  
+</span>
+
+          </div>
+        
+        
+          <div class="post-meta">
+            <i class="iconfont icon-tags"></i>
+            
+              <a href="/tags/xv6/">#xv6</a>
+            
+          </div>
+        
+      </div>
+    </article>
+  </div>
+
+  <div class="row mx-auto index-card">
+    
+    
+    <article class="col-12 col-md-12 mx-auto index-info">
+      <h2 class="index-header">
+        
         <a href="/2024/04/14/Lab5-Copy-on-Write-Fork/" target="_self">
           Lab5 Copy-on-Write Fork
         </a>
@@ -530,14 +774,14 @@
       <h2 class="index-header">
         
         <a href="/2024/03/16/xv6-book-Chapter6/" target="_self">
-          xv6-book-Chapter6
+          xv6-book-Chapter6-Lock
         </a>
       </h2>
 
       
       <a class="index-excerpt index-excerpt__noimg" href="/2024/03/16/xv6-book-Chapter6/" target="_self">
         <div>
-          Chapter6 Lock 设计操作系统时最需要关注的三个重点：虚拟化、并发、持久化。 123（1）虚拟化就是为每个程序都提供自己独占CPU或内存的假象（2）并发需要关注多个线程或应用程序间可能出现的竞争现象（3）持久性则关注让用户数据等保存在机器上而不受机器崩溃的影响 本篇的内容主要围绕锁展开，这是解决并发问题的核心工具之一。但是在此之前，我们需要一些前置知识 高速缓存一致性 写回（延迟
+          Chapter6 Lock 设计操作系统时最需要关注的三个重点：虚拟化、并发、持久化。 123（1）虚拟化就是为每个程序都提供自己独占CPU或内存的假象（2）并发需要关注多个线程或应用程序间可能出现的竞争现象（3）持久性则关注让用户数据等保存在机器上而不受机器崩溃的影响 内核之中总是遍布着各种共享数据结构。例如，多个CPU可以同时地调用kalloc，并发地从free-list上取出第一页。并发
         </div>
       </a>
 
@@ -577,229 +821,6 @@
             <i class="iconfont icon-tags"></i>
             
               <a href="/tags/xv6/">#xv6</a>
-            
-          </div>
-        
-      </div>
-    </article>
-  </div>
-
-  <div class="row mx-auto index-card">
-    
-    
-    <article class="col-12 col-md-12 mx-auto index-info">
-      <h2 class="index-header">
-        
-        <a href="/2024/03/13/Lab4-Trap/" target="_self">
-          Lab4-Trap
-        </a>
-      </h2>
-
-      
-      <a class="index-excerpt index-excerpt__noimg" href="/2024/03/13/Lab4-Trap/" target="_self">
-        <div>
-          课程地址 本次实验是需要完成trap相关的实验内容，主要是加深对trap的理解，理论知识包含在 [xv6-book-Chapter4 - Cygnus的博客 (cygnus-queen.github.io) Alarm 其实这是一个相当有趣的实验。在完成一些项目时，我们总是需要对计算资源的使用情况进行分析，其中CPU资源的利用率是非常重要的分析指标。经常可能会有进程占据了过多的CPU资源长时
-        </div>
-      </a>
-
-      <div class="index-btm post-metas">
-        
-          <div class="post-meta mr-3">
-            <i class="iconfont icon-date"></i>
-            <time datetime="2024-03-13 14:32" pubdate>
-              2024-03-13
-            </time>
-          </div>
-        
-        
-          <div class="post-meta mr-3 d-flex align-items-center">
-            <i class="iconfont icon-category"></i>
-            
-
-<span class="category-chains">
-  
-  
-    
-      <span class="category-chain">
-        
-  <a href="/categories/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/" class="category-chain-item">操作系统</a>
-  
-  
-
-      </span>
-    
-  
-</span>
-
-          </div>
-        
-        
-          <div class="post-meta">
-            <i class="iconfont icon-tags"></i>
-            
-              <a href="/tags/xv6/">#xv6</a>
-            
-          </div>
-        
-      </div>
-    </article>
-  </div>
-
-  <div class="row mx-auto index-card">
-    
-    
-    <article class="col-12 col-md-12 mx-auto index-info">
-      <h2 class="index-header">
-        
-        <a href="/2024/03/07/xv6-book-Chapter4/" target="_self">
-          xv6-book-Chapter4
-        </a>
-      </h2>
-
-      
-      <a class="index-excerpt index-excerpt__noimg" href="/2024/03/07/xv6-book-Chapter4/" target="_self">
-        <div>
-          Chapter4 Traps and System Calls Trap是一类特殊事件，他们可以打断当前指令流的执行： - 系统调用。执行RISC-V的ecall指令时 - 异常。用户或内核指令可能进行了一些非法操作，例如除以0或者使用无效的虚拟地址时 - 设备中断。当一个设备因某些原因（如磁盘的读/写工作完成）需要CPU及时处理时 无论是哪一种，都涉及到了操作系统从用户态到内核态的转换。通常
-        </div>
-      </a>
-
-      <div class="index-btm post-metas">
-        
-          <div class="post-meta mr-3">
-            <i class="iconfont icon-date"></i>
-            <time datetime="2024-03-07 22:42" pubdate>
-              2024-03-07
-            </time>
-          </div>
-        
-        
-          <div class="post-meta mr-3 d-flex align-items-center">
-            <i class="iconfont icon-category"></i>
-            
-
-<span class="category-chains">
-  
-  
-    
-      <span class="category-chain">
-        
-  <a href="/categories/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/" class="category-chain-item">操作系统</a>
-  
-  
-
-      </span>
-    
-  
-</span>
-
-          </div>
-        
-        
-          <div class="post-meta">
-            <i class="iconfont icon-tags"></i>
-            
-              <a href="/tags/xv6/">#xv6</a>
-            
-          </div>
-        
-      </div>
-    </article>
-  </div>
-
-  <div class="row mx-auto index-card">
-    
-    
-    <article class="col-12 col-md-12 mx-auto index-info">
-      <h2 class="index-header">
-        
-        <a href="/2024/03/07/Lab3-Page-Table/" target="_self">
-          Lab3-Page Table
-        </a>
-      </h2>
-
-      
-      <a class="index-excerpt index-excerpt__noimg" href="/2024/03/07/Lab3-Page-Table/" target="_self">
-        <div>
-          课程地址_ 本次实验是需要完成页表相关的内容，主要是加深对虚拟内存的理解，理论知识包含在 xv6-book Chapter3 - Cygnus的博客 (cygnus-queen.github.io) 实验一：加快系统调用 在第二章我们可以知道，系统调用是操作系统提供给应用程序的接口。当使用系统调用时会发生中断，这涉及到内核态和用户态的切换，因此带来比较大的开销。 本次实验想要加速这个过程，
-        </div>
-      </a>
-
-      <div class="index-btm post-metas">
-        
-          <div class="post-meta mr-3">
-            <i class="iconfont icon-date"></i>
-            <time datetime="2024-03-07 12:36" pubdate>
-              2024-03-07
-            </time>
-          </div>
-        
-        
-          <div class="post-meta mr-3 d-flex align-items-center">
-            <i class="iconfont icon-category"></i>
-            
-
-<span class="category-chains">
-  
-  
-    
-      <span class="category-chain">
-        
-  <a href="/categories/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/" class="category-chain-item">操作系统</a>
-  
-  
-
-      </span>
-    
-  
-</span>
-
-          </div>
-        
-        
-          <div class="post-meta">
-            <i class="iconfont icon-tags"></i>
-            
-              <a href="/tags/xv6/">#xv6</a>
-            
-          </div>
-        
-      </div>
-    </article>
-  </div>
-
-  <div class="row mx-auto index-card">
-    
-    
-    <article class="col-12 col-md-12 mx-auto index-info">
-      <h2 class="index-header">
-        
-        <a href="/2024/03/04/Go%EF%BC%9A%E5%AE%9E%E7%8E%B0ping%E5%87%BD%E6%95%B0/" target="_self">
-          Go：实现ping函数
-        </a>
-      </h2>
-
-      
-      <a class="index-excerpt index-excerpt__noimg" href="/2024/03/04/Go%EF%BC%9A%E5%AE%9E%E7%8E%B0ping%E5%87%BD%E6%95%B0/" target="_self">
-        <div>
-          ping函数是基于ICMP协议的，该协议运行在网络层，如果只是单纯的记忆报文的格式其实没有意义，伴随实践可以让印象更深刻。 IP协议本身不支持发现发往目的地地址失败的IP数据包，也没有提供直接的方式获取诊断信息，比如在发送途中，经过了哪些路由器，以及往返时间。所以由ICMP协议（Internet Control Message Protocol，ICMP）专门来负责这些事情。 ICMP并不为I
-        </div>
-      </a>
-
-      <div class="index-btm post-metas">
-        
-          <div class="post-meta mr-3">
-            <i class="iconfont icon-date"></i>
-            <time datetime="2024-03-04 21:08" pubdate>
-              2024-03-04
-            </time>
-          </div>
-        
-        
-        
-          <div class="post-meta">
-            <i class="iconfont icon-tags"></i>
-            
-              <a href="/tags/%E7%BC%96%E7%A8%8B%E8%AF%AD%E8%A8%80-%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C/">#编程语言, 计算机网络</a>
             
           </div>
         
