@@ -18,27 +18,27 @@
   
     <meta name="description" content="什么是docker？ Docker是一种轻量级的虚拟化技术，可以为任何应用创建一个轻量级、可移植的的容器。开发者在电脑上编译测试通过的容器可以批量地在生产环境中部署。 镜像分层技术 + 利用宿主机内核（Namespaces+CGroups） &#x3D; 轻量级 + 隔离性 docker的优势是什么？ 谈到容器化部署的好处，那自然是相对于虚拟化部署而言的。 1注意容器化虽然也属于虚拟化的一种，但是这">
 <meta property="og:type" content="article">
-<meta property="og:title" content="docker">
-<meta property="og:url" content="http://example.com/2024/03/16/docker/index.html">
+<meta property="og:title" content="docker学习总结">
+<meta property="og:url" content="http://example.com/2024/04/19/docker%E5%AD%A6%E4%B9%A0%E6%80%BB%E7%BB%93/index.html">
 <meta property="og:site_name" content="Cygnus的博客">
 <meta property="og:description" content="什么是docker？ Docker是一种轻量级的虚拟化技术，可以为任何应用创建一个轻量级、可移植的的容器。开发者在电脑上编译测试通过的容器可以批量地在生产环境中部署。 镜像分层技术 + 利用宿主机内核（Namespaces+CGroups） &#x3D; 轻量级 + 隔离性 docker的优势是什么？ 谈到容器化部署的好处，那自然是相对于虚拟化部署而言的。 1注意容器化虽然也属于虚拟化的一种，但是这">
 <meta property="og:locale" content="zh_CN">
-<meta property="og:image" content="http://example.com/2024/03/16/docker/Pasted%20image%2020240315105829.png">
-<meta property="og:image" content="http://example.com/2024/03/16/docker/Pasted%20image%2020240315102314.png">
-<meta property="og:image" content="http://example.com/2024/03/16/docker/Pasted%20image%2020240315104617.png">
-<meta property="og:image" content="http://example.com/2024/03/16/docker/Pasted%20image%2020240315151612.png">
-<meta property="og:image" content="http://example.com/2024/03/16/docker/Pasted%20image%2020240315202120.png">
-<meta property="og:image" content="http://example.com/2024/03/16/docker/Pasted%20image%2020240316214955.png">
-<meta property="article:published_time" content="2024-03-16T13:55:53.000Z">
-<meta property="article:modified_time" content="2024-03-17T06:33:45.742Z">
+<meta property="og:image" content="http://example.com/2024/04/19/docker%E5%AD%A6%E4%B9%A0%E6%80%BB%E7%BB%93/Pasted%20image%2020240315105829.png">
+<meta property="og:image" content="http://example.com/2024/04/19/docker%E5%AD%A6%E4%B9%A0%E6%80%BB%E7%BB%93/Pasted%20image%2020240315102314.png">
+<meta property="og:image" content="http://example.com/2024/04/19/docker%E5%AD%A6%E4%B9%A0%E6%80%BB%E7%BB%93/Pasted%20image%2020240315104617.png">
+<meta property="og:image" content="http://example.com/2024/04/19/docker%E5%AD%A6%E4%B9%A0%E6%80%BB%E7%BB%93/Pasted%20image%2020240315151612.png">
+<meta property="og:image" content="http://example.com/2024/04/19/docker%E5%AD%A6%E4%B9%A0%E6%80%BB%E7%BB%93/Pasted%20image%2020240315202120.png">
+<meta property="og:image" content="http://example.com/2024/04/19/docker%E5%AD%A6%E4%B9%A0%E6%80%BB%E7%BB%93/Pasted%20image%2020240316214955.png">
+<meta property="article:published_time" content="2024-04-19T11:45:37.000Z">
+<meta property="article:modified_time" content="2024-04-19T11:47:16.207Z">
 <meta property="article:author" content="Cygnus">
-<meta property="article:tag" content="docker, 容器">
+<meta property="article:tag" content="docker, 容器化技术, 云原生">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:image" content="http://example.com/2024/03/16/docker/Pasted%20image%2020240315105829.png">
+<meta name="twitter:image" content="http://example.com/2024/04/19/docker%E5%AD%A6%E4%B9%A0%E6%80%BB%E7%BB%93/Pasted%20image%2020240315105829.png">
   
   
   
-  <title>docker - Cygnus的博客</title>
+  <title>docker学习总结 - Cygnus的博客</title>
 
   <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
 
@@ -204,7 +204,7 @@
       <div class="banner-text text-center fade-in-up">
         <div class="h2">
           
-            <span id="subtitle" data-typed-text="docker"></span>
+            <span id="subtitle" data-typed-text="docker学习总结"></span>
           
         </div>
 
@@ -215,8 +215,8 @@
     
       <span class="post-meta">
         <i class="iconfont icon-date-fill" aria-hidden="true"></i>
-        <time datetime="2024-03-16 21:55" pubdate>
-          2024年3月16日 晚上
+        <time datetime="2024-04-19 19:45" pubdate>
+          2024年4月19日 晚上
         </time>
       </span>
     
@@ -275,7 +275,7 @@
       <div class="container nopadding-x-md" id="board-ctn">
         <div id="board">
           <article class="post-content mx-auto">
-            <h1 id="seo-header">docker</h1>
+            <h1 id="seo-header">docker学习总结</h1>
             
             
               <div class="markdown-body">
@@ -352,7 +352,7 @@
 <h2 id="docker-compose">docker compose</h2>
 <p>Compose 项目是 Docker 官方的开源项目，负责实现对 Docker 容器集群的快速编排。使用前面介绍的Dockerfile我们很容易定义一个单独的应用容器。然而在日常开发工作中，经常会碰到需要多个容器相互配合来完成某项任务的情况。</p>
 <p>例如要实现一个 Web 项目，除了 Web 服务容器本身，往往还需要再加上后端的数据库服务容器；再比如在分布式应用一般包含若干个服务，每个服务一般都会部署多个实例。如果每个服务都要手动启停，那么效率之低、维护量之大可想而知。这时候就需要一个工具能够管理一组相关联的的应用容器，这就是Docker Compose</p>
-<p>使用 Compose 基本上分为三步： 1. 使用 Dockerfile 定义您的应用程序的环境 2. 使用 docker-compose.yml 定义组成您的应用程序的服务 3. 运行<code>docker compose up</code>启动并运行程序</p>
+<p>使用 Compose 基本上分为三步： 1. 使用 Dockerfile 定义您的应用程序的环境 2. 使用 docker-compose.yml 定义组成您的应用程序的服务 3. 运行docker compose up启动并运行程序</p>
 
                 
               </div>
@@ -371,7 +371,7 @@
     
       <span class="category-chain">
         
-  <a href="/categories/k8s/" class="category-chain-item">k8s</a>
+  <a href="/categories/%E5%90%8E%E7%AB%AF/" class="category-chain-item">后端</a>
   
   
 
@@ -386,7 +386,7 @@
     <div class="post-meta">
       <i class="iconfont icon-tags"></i>
       
-        <a href="/tags/docker-%E5%AE%B9%E5%99%A8/" class="print-no-link">#docker, 容器</a>
+        <a href="/tags/docker-%E5%AE%B9%E5%99%A8%E5%8C%96%E6%8A%80%E6%9C%AF-%E4%BA%91%E5%8E%9F%E7%94%9F/" class="print-no-link">#docker, 容器化技术, 云原生</a>
       
     </div>
   
@@ -398,8 +398,8 @@
 
   <div class="license-box my-3">
     <div class="license-title">
-      <div>docker</div>
-      <div>http://example.com/2024/03/16/docker/</div>
+      <div>docker学习总结</div>
+      <div>http://example.com/2024/04/19/docker学习总结/</div>
     </div>
     <div class="license-meta">
       
@@ -411,7 +411,7 @@
       
         <div class="license-meta-item license-meta-date">
           <div>发布于</div>
-          <div>2024年3月16日</div>
+          <div>2024年4月19日</div>
         </div>
       
       
@@ -443,18 +443,12 @@
                   <article class="post-prev col-6">
                     
                     
-                      <a href="/2024/04/12/MySQL%E5%AD%A6%E4%B9%A0%E6%80%BB%E7%BB%93/" title="MySQL学习总结">
-                        <i class="iconfont icon-arrowleft"></i>
-                        <span class="hidden-mobile">MySQL学习总结</span>
-                        <span class="visible-mobile">上一篇</span>
-                      </a>
-                    
                   </article>
                   <article class="post-next col-6">
                     
                     
-                      <a href="/2024/03/16/xv6-book-Chapter6/" title="xv6-book-Chapter6-Lock">
-                        <span class="hidden-mobile">xv6-book-Chapter6-Lock</span>
+                      <a href="/2024/04/19/Nginx%E5%AD%A6%E4%B9%A0%E6%80%BB%E7%BB%93/" title="Nginx学习总结">
+                        <span class="hidden-mobile">Nginx学习总结</span>
                         <span class="visible-mobile">下一篇</span>
                         <i class="iconfont icon-arrowright"></i>
                       </a>
