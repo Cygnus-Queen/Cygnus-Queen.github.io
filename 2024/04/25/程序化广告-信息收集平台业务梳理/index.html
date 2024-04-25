@@ -1,0 +1,701 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=auto>
+
+
+
+<head>
+  <meta charset="UTF-8">
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/fluid.png">
+  <link rel="icon" href="/img/fluid.png">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="author" content="Cygnus">
+  <meta name="keywords" content="">
+  
+    <meta name="description" content="之前本科保研结束后在汇量科技实习时的业务是程序化广告，第一次接触了实际的生产环境 过了好几年，马上要开始研究生秋招了，我找到了之前写的日报，再结合现在学的知识。对之前自己所作的工作有了全新认识，于是将自己对业务的理解和一些数据库、消息队列组件的应用情况整理出来。 下文会先讲到整个程序化广告的大业务，再牵扯出用户信息收集平台的小业务 核心业务目标 概述 程序化广告业务既有ToB的部分也有T">
+<meta property="og:type" content="article">
+<meta property="og:title" content="程序化广告--信息收集平台业务梳理">
+<meta property="og:url" content="http://example.com/2024/04/25/%E7%A8%8B%E5%BA%8F%E5%8C%96%E5%B9%BF%E5%91%8A-%E4%BF%A1%E6%81%AF%E6%94%B6%E9%9B%86%E5%B9%B3%E5%8F%B0%E4%B8%9A%E5%8A%A1%E6%A2%B3%E7%90%86/index.html">
+<meta property="og:site_name" content="Cygnus的博客">
+<meta property="og:description" content="之前本科保研结束后在汇量科技实习时的业务是程序化广告，第一次接触了实际的生产环境 过了好几年，马上要开始研究生秋招了，我找到了之前写的日报，再结合现在学的知识。对之前自己所作的工作有了全新认识，于是将自己对业务的理解和一些数据库、消息队列组件的应用情况整理出来。 下文会先讲到整个程序化广告的大业务，再牵扯出用户信息收集平台的小业务 核心业务目标 概述 程序化广告业务既有ToB的部分也有T">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2024-04-25T12:24:31.000Z">
+<meta property="article:modified_time" content="2024-04-25T12:28:07.220Z">
+<meta property="article:author" content="Cygnus">
+<meta property="article:tag" content="程序化广告">
+<meta name="twitter:card" content="summary_large_image">
+  
+  
+  
+  <title>程序化广告--信息收集平台业务梳理 - Cygnus的博客</title>
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
+
+
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/github-markdown-css/4.0.0/github-markdown.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/hint.css/2.7.0/hint.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.css" />
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+<!-- Do not modify the link that theme dependent icons -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1749284_hj8rtnfg7um.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1736178_lbnruvf0jn.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+
+  <link id="highlight-css" rel="stylesheet" href="/css/highlight.css" />
+  
+    <link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css" />
+  
+
+
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    Fluid.ctx = Object.assign({}, Fluid.ctx)
+    var CONFIG = {"hostname":"example.com","root":"/","version":"1.9.5","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"follow_dnt":true,"baidu":null,"google":{"measurement_id":null},"tencent":{"sid":null,"cid":null},"woyaola":null,"cnzz":null,"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false}},"search_path":"/local-search.xml","include_content_in_search":true};
+
+    if (CONFIG.web_analytics.follow_dnt) {
+      var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
+      Fluid.ctx.dnt = dntVal && (dntVal.startsWith('1') || dntVal.startsWith('yes') || dntVal.startsWith('on'));
+    }
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+  
+
+
+  
+<meta name="generator" content="Hexo 7.0.0"></head>
+
+
+<body>
+  
+
+  <header>
+    
+
+<div class="header-inner" style="height: 70vh;">
+  <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>Cygnus</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/">
+                <i class="iconfont icon-home-fill"></i>
+                <span>首页</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/">
+                <i class="iconfont icon-archive-fill"></i>
+                <span>归档</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/">
+                <i class="iconfont icon-category-fill"></i>
+                <span>分类</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/">
+                <i class="iconfont icon-tags-fill"></i>
+                <span>标签</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/">
+                <i class="iconfont icon-user-fill"></i>
+                <span>关于</span>
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <i class="iconfont icon-search"></i>
+            </a>
+          </li>
+          
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">
+              <i class="iconfont icon-dark" id="color-toggle-icon"></i>
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+  
+
+<div id="banner" class="banner" parallax=true
+     style="background: url('/img/%E4%BB%99%E5%89%91%E9%97%AE%E6%83%85%E5%A5%B3%E7%A5%9E.jpg') no-repeat center center; background-size: cover;">
+  <div class="full-bg-img">
+    <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+      <div class="banner-text text-center fade-in-up">
+        <div class="h2">
+          
+            <span id="subtitle" data-typed-text="程序化广告--信息收集平台业务梳理"></span>
+          
+        </div>
+
+        
+          
+  <div class="mt-3">
+    
+    
+      <span class="post-meta">
+        <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+        <time datetime="2024-04-25 20:24" pubdate>
+          2024年4月25日 晚上
+        </time>
+      </span>
+    
+  </div>
+
+  <div class="mt-1">
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-chart"></i>
+        
+          6k 字
+        
+      </span>
+    
+
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-clock-fill"></i>
+        
+        
+        
+          51 分钟
+        
+      </span>
+    
+
+    
+    
+  </div>
+
+
+        
+      </div>
+
+      
+    </div>
+  </div>
+</div>
+
+</div>
+
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+
+    </div>
+
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div id="board">
+          <article class="post-content mx-auto">
+            <h1 id="seo-header">程序化广告--信息收集平台业务梳理</h1>
+            
+            
+              <div class="markdown-body">
+                
+                <p>之前本科保研结束后在汇量科技实习时的业务是程序化广告，第一次接触了实际的生产环境</p>
+<p>过了好几年，马上要开始研究生秋招了，我找到了之前写的日报，再结合现在学的知识。对之前自己所作的工作有了全新认识，于是将自己对<strong>业务的理解</strong>和一些<strong>数据库、消息队列组件的应用情况</strong>整理出来。</p>
+<p>下文会先讲到整个程序化广告的大业务，再牵扯出用户信息收集平台的小业务</p>
+<h2 id="核心业务目标">核心业务目标</h2>
+<h3 id="概述">概述</h3>
+<p>程序化广告业务既有ToB的部分也有ToC的部分。在计算机刚刚出现的年代， 广告位和展示的内容往往是固定的，就像电视台的广告一样，大家看的都是一样的。</p>
+<p>这样的广告其实转化率很低，没有办法定向划分人群，因此产生了程序化广告。<strong>广告的本质是流量交易</strong>，供应流量的人聚集在一起形成SSP（卖方平台）（卖流量的人），有广告需求的广告主聚集在一起构成DSP（买方平台）（买流量的人）。</p>
+<p>SSP和DSP往往有很多家，可能涉及多种不同的领域，比如旅游相关的网站，app等可能被人整合成了一个或多个SSP。</p>
+<p>这时就需要一个中间商把他们连接起来，ADX（ad exchange），互联网广告交易平台就是完成这样的工作，相当于中介。</p>
+<p>同样的，这个世界上不止一家ADX，比如facebook、toutiao、腾讯等一方面为流量博主提供了变现渠道，另一面也为广告主提供，他们都是ADX。</p>
+<p>由于各家的流量和广告主素材都不一致，因为往往ADX还有可能和ADX连接在一起，这样多种SSP、DSP、ADX连接在一起构成了一个复杂图就是现在的程序化广告生态。</p>
+<h3 id="整个业务的流程">整个业务的流程？</h3>
+<p>每当流量供应方，例如up主，短视频博主，网站的博主、微信公众号的博主等，想在一个位置接入广告将自己的流量变现，那么就可以选择一个SSP，根据他们提供的方法，例如将SDK嵌入到网站代码中。</p>
+<p>每当一个用户访问时，SSP就会向ADX发起一次广告展示请求，并且附带一些该用户的信息，例如即将浏览广告的用户id（imei，唯一设备标识码）、想要展示广告的app的id，渠道id等。ADX通过用户id可以在自己的数据库查询到一些用户信息（例如偏好），用来帮助广告的精准投放。</p>
+<p>当一条广告投放完成后就要涉及到后续的归因和变现，每当用户对广告产生一次浏览、点击、安装等行为时，广告主那边就可以接收到用户id产生的行为，在投放和变现两个系统中根据唯一设备标识码（用户id）进行匹配，就可以将投放行为和产生的效益进行关联。然后就可以变现（找广告主要钱）。</p>
+<p>因此，<strong>整个业务的流程至少涉及到了四个子业务</strong>： （1）广告主面对的UI界面：需要用到其他所有业务产生的数据 需要给广告主提供一个界面，让他可以上传自己设计好的广告创意、观察变现情况（有多少人看到了、点击了、安装了）、设定投放策略（决定投放的平台，付费的策略）、分析变现的效果（大数据分析、智能投放和归因） （2）投放侧平台：将接收到一个广告请求时，需要决定投放什么样的广告 投放测需要利用数据挖掘、大数据分析等技术让广告投放更加精准，例如针对旅游爱好者投放冲锋衣、防水背包广告等。 （3）信息收集平台：将投放测产生的记录和变现事件记录进行匹配 当发生点击等事件时会触发一次回调，将信息作为post请求传递到回调信息收集平台。平台需要根据id（可能是用户id、可能是广告id）匹配出一次完整的投放变现行为。将补全的数据作为消息一方面存入<strong>数据库</strong>供给广告主ui界面查看，另一方面传入<strong>消息队列</strong>，供变现侧平台消费 （4）变现平台：作为消费者处理消息队列中的变现情况。</p>
+<p>可以参考这篇文章 https://juejin.cn/post/7103350413503512583</p>
+<p><strong>其中信息收集平台就是我本次实习的核心业务。主要负责adjust聚合平台的回调业务</strong></p>
+<h4 id="变现的方式">变现的方式</h4>
+<p>（1） CPI：按安装付费。在游戏业务中很常见 （2）CPA：按行动付费。即按回应的有效问卷、定单、注册、下载等行动来计费 （3）CPM：按展示付费。例如头条开屏广告 （4）CPC：按点击付费。关键词广告一般采用这种定价模式</p>
+<h2 id="big_collector用户信息收集平台">big_collector用户信息收集平台</h2>
+<p>我的任务主要是负责adjust第三方回调的信息处理，其实核心任务就是两个： （1）回调数据清洗 （2）信息补全</p>
+<figure class="highlight stylus"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><code class="hljs stylus">--<span class="hljs-attr">--BIG_COLLECTOR</span><br>	--<span class="hljs-attr">--conf</span><br>	--<span class="hljs-attr">--models</span><br>	--<span class="hljs-attr">--pkg</span><br>	--<span class="hljs-attr">--routers</span><br>	--<span class="hljs-attr">--service</span><br>	go<span class="hljs-selector-class">.mod</span><br>	<span class="hljs-selector-tag">main</span><span class="hljs-selector-class">.go</span><br>	Dockerfile<br></code></pre></td></tr></table></figure>
+<h3 id="回调数据清洗">回调数据清洗</h3>
+<h4 id="数据结构">数据结构</h4>
+<p>数据清洗的主要对象是adjustDTO数据结构中的渠道id、os环境等 （1）DTO数据 <figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><code class="hljs go"><span class="hljs-comment">//部分词条、完整的词条不记得了</span><br><span class="hljs-keyword">type</span> AdjustDto&#123;<br>	ActivityKind <span class="hljs-type">string</span> <span class="hljs-comment">//回调的事件类型：impression、click、install</span><br>	AdNetwork    <span class="hljs-type">string</span> <span class="hljs-comment">//渠道ID，例如toutiao、facebook等</span><br>	Adgroup      <span class="hljs-type">string</span> <span class="hljs-comment">//推广单元id</span><br>	AppId        <span class="hljs-type">string</span> <span class="hljs-comment">//appid，事件发生在哪个app上、需要和渠道id搭配使用</span><br>	AppToken     <span class="hljs-type">string</span><br>	creativeID   <span class="hljs-type">string</span> <span class="hljs-comment">//广告创意id</span><br>	Platform     <span class="hljs-type">string</span> <span class="hljs-comment">//操作系统名称</span><br>	CostType     <span class="hljs-type">string</span> <span class="hljs-comment">//变现的方式</span><br>&#125;<br></code></pre></td></tr></table></figure></p>
+<h4 id="处理逻辑">处理逻辑</h4>
+<p>（1）添加时间字段。 （2）填充空余字段。例如有的回调信息可能没有Platform，是包含在其他字段中的，需要取出来，有的AppID为空，包含在apptoken中，需要取出来 （3）字段修改替换。找到一段字符串中的有效信息，例如前后缀截取、根据冒号截取等。例如广告创意id，ID1234，其中的ID是没必要存储到数据库中的，需要截取后面的部分 涉及到switch case语句，对不同渠道id的数据做不同的处理 （4）统一字段格式。对于后续需要使用的字段格式要进行统一，例如CostType等字段统一为小写</p>
+<h3 id="信息补全">信息补全</h3>
+<h4 id="数据结构-1">数据结构</h4>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><code class="hljs go"><br><span class="hljs-comment">//这个是广告创意的实体，存储在mysql中</span><br><span class="hljs-keyword">type</span> PromotionCreative <span class="hljs-keyword">struct</span> &#123;<br>    Id             <span class="hljs-type">int</span>     <br>    AdNetworkId    <span class="hljs-type">int</span>   <br>    AdNetworkName  <span class="hljs-type">string</span> <br>    AdvertiserId   <span class="hljs-type">string</span><br>    AdvertiserName <span class="hljs-type">string</span> <br>    CampaignId     <span class="hljs-type">string</span> <br>    CampaignName   <span class="hljs-type">string</span> <br>    OfferId        <span class="hljs-type">string</span> <br>    OfferName      <span class="hljs-type">string</span> <br>    CreativeId     <span class="hljs-type">string</span> <br>    CreativeName   <span class="hljs-type">string</span> <br>&#125;<br></code></pre></td></tr></table></figure>
+<h4 id="处理逻辑-1">处理逻辑</h4>
+<p>回调发送过来的数据会附带发生的事件，根据不同的事件分类处理处理。以安装事件为例： （1）素材匹配：先利用redis查询，将offerid、offername、creativeid、creativename用冒号连接起来构成key。 如果没查询到就从数据库查然后缓存1h，如果数据库也没找到则缓存5min的空值防止<strong>缓存击穿</strong> （2）素材匹配：利用<code>go的strings.Builder</code>构建查询语句，根据creativeid或者offerid从表中获取整个PromotionCreative结构体 具体的执行操作由库实现，例如sql.exec()、sql.Raw() （3）补齐出价情况：每个广告素材由creativeID指定，用户在创建广告时会以它为索引在mongodb中插入了一条该素材的数据，其中包括了出价、出价类型等。 通过构建一个名为query的bson串，调用<code>collection.FindOne(context.TODO(), query, queryOption)</code>在mongo的对应集合中中进行查找，并按照创建日期排序<code>&quot;created_at&quot;: -1,</code>，获取最新的出价并补齐DTO数据 （4）将最后的数据保存到mongo并且封装成消息传输给kafka，供下游变现测、日志分析测消费</p>
+<p>注意：每一次从查询都需要记录日志</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><code class="hljs go"><span class="hljs-comment">// ProduceMessageAdjust 发送adjust的消息</span><br><span class="hljs-function"><span class="hljs-keyword">func</span> <span class="hljs-title">ProduceMessageAdjust</span><span class="hljs-params">(adjust models.AdjustDto)</span></span> &#123;<br>    adjust.Country = strings.ToUpper(adjust.Country)<br>    marshal, _ := json.Marshal(adjust)<br>    pid, offset, err := MonServer.SynServer.SendMessage(<br>        &amp;sarama.ProducerMessage&#123;<br>            Topic: setting.KafKaSetting.PromotionTopics,<br>            Key:   sarama.StringEncoder(adjust.PackageName),<br>            Value: sarama.StringEncoder(marshal),<br>        &#125;)<br><br>&#125;<br></code></pre></td></tr></table></figure>
+<h4 id="数据来源">数据来源</h4>
+<p>（1）xxl-job会定期进行mysql和redis的同步，具体是从供给侧将数据同步到用户信息收集测。根据平台id从mysql读取广告创意，然后同步到redis中，分别根据creative_id、offer_id，creative_name，offer_name构建hash结构，广告创意结构体为value <figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs go">gredis.HmsetNotExpire(redisKey, redisData)<br></code></pre></td></tr></table></figure></p>
+<p>（2）投放侧会操作mongo，将一些竞价之后的数据存放在mongo中</p>
+<h3 id="业务的特点自己的理解">业务的特点（自己的理解）</h3>
+<p>（1）业务复杂 因为adjust是一个聚合平台，<strong>是为IOS、Android移动终端开发者提供广告服务和盈利机会的第三方平台</strong>。牵涉到的子广告平台众多，广告创意的来源、变现渠道、变现方式等多种多样，所以词条字段不统一、字段之间的匹配处理有比较大的难度 （2）时效性要求不高 程序化广告中的广告<strong>投放测对实时性要求很高</strong>，当一个广告请求到来时要立刻进行竞价。但是<strong>用户信息收集平台要求不高</strong>吗，对点击、安装等事件的回调，不需要那么快就反应到用户的UI界面上，可以有一点延迟。 因此当出现没有匹配成功的情况时可以进行<strong>二次匹配</strong>，甚至可以<strong>流量回放</strong> （3）mongodb读写均衡，mysql和redis读多写少（几乎没有写mysql的操作）</p>
+<h2 id="组件">组件</h2>
+<h3 id="redis和mysql">Redis和MySQL</h3>
+<p>使用redis和mysql保存广告创意实体，涉及到了offer_id、creative_id，offer_name、creative_name、广告主id等字段</p>
+<p>项目中MySQL的最大连接时长是24h</p>
+<p>redis MaxActive，连接池的最大数据库连接数30</p>
+<h3 id="mongodb">MongoDB</h3>
+<p>mongo中有很多集合和文档。在涉及到竞价匹配时，需要从mongo中读取文档。一般以： 预先设定的常量前缀 : 渠道id : 广告创意id : 匹配日期来构建集合，DTO数据为文档</p>
+<h3 id="xxl-job">xxl-job</h3>
+<p>xxl-job是一个分布式的任务调度平台，结构如下： （1）调度中心 一个单独的Web服务，主要是用来触发定时任务的执行，它提供了一些页面操作，我们可以很方便地去管理这些定时任务的触发逻辑。调度中心依赖数据库，所以数据都是存在数据库中的，所以同一个集群中的调度中心实例之间是没有任何通信的，数据都是通过数据库共享的 （2）执行器 执行器是用来执行具体的任务逻辑的，执行器可以理解为就是平时开发的服务，一个服务实例对应一个执行器实例 （3）任务 一个执行器中是可以有多个任务的</p>
+<p>总的来说，调度中心是用来控制定时任务的触发逻辑，而执行器是具体执行任务的，这是一种任务和触发逻辑分离的设计思想，这种方式的好处就是使任务更加灵活，可以随时被调用，还可以被不同的调度规则触发</p>
+<figure class="highlight livecodeserver"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs livecodeserver">问题：任务如何触发？<br>答案：调度中心在启动的时候，会开启一个线程，这个线程的作用就是来计算任务触发时机，这里我把这个线程称为调度线程，这个调度线程会去查询xxl_job_info表，这张表存了任务的一些基本信息和任务下一次执行的时间。当任务达到了触发条件，调度线程会将这个触发的任务交给线程池去执行（用一个线程对执行器发起<span class="hljs-keyword">http</span>请求，代码中的路由接受到请求就执行具体的任务函数）<br><br>追问：执行器如何执行任务？<br>答案：当执行器接收到请求，执行器会去为这个任务创建一个单独的线程，这个线程被称为JobThread。随后执行器会把任务提交进入一个任务队列，JobThread从队列中获取任务<br></code></pre></td></tr></table></figure>
+<p>聊聊xxl-job? - sea的回答 - 知乎 https://www.zhihu.com/question/605917307/answer/3460606027</p>
+<p>使用xxl-job定时同步MySQL的投放测数据到redis</p>
+<p>使用xxl-job定时进行流量回放、修复因为缓存一致性问题导致的匹配失败问题。重放的过程需要先从redis获取分布式锁，等待时间为2400s。</p>
+<h3 id="docker">docker</h3>
+<p>docker相关的知识可以看我之前的<a target="_blank" rel="noopener" href="https://cygnus-queen.github.io/2024/04/19/docker%E5%AD%A6%E4%B9%A0%E6%80%BB%E7%BB%93/">学习总结</a></p>
+<p>ports端口暴露 networks网络指定 volumes容器持久化 deploy指定replicas值为2，服务部署在两个节点上</p>
+<figure class="highlight awk"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs awk"><span class="hljs-regexp">//</span>用到的指令<br>  docker image tag <span class="hljs-variable">$docker_name</span> hub.xxx.com<span class="hljs-regexp">/faxing/</span>big-collector:<span class="hljs-variable">$version</span><br>  docker push hub.xxx.com<span class="hljs-regexp">/faxing/</span>big-collector:<span class="hljs-variable">$version</span><br></code></pre></td></tr></table></figure>
+<h3 id="prometheusgrafana">prometheus+Grafana</h3>
+<p>在Prometheus的架构设计中，Prometheus Server并不直接服务监控特定的目标，其主要任务负责数据的收集，存储并且对外提供数据查询支持。而数据采集就需要去特定的路由请求数据，这就需要exporter。</p>
+<p>adjust有一个路由的监控指标（counter）</p>
+<h3 id="业务中的安全问题">业务中的安全问题</h3>
+<p>抛开用户数据这种任何业务中都很常见的安全问题外，在程序化广告中还存在一些特殊情况。</p>
+<p>（1）渠道商劫持问题。如果一个应用在某个系统中被点击，该点击事件有可能被导向渠道商。 例如下载某个游戏，可能点击广告后原本应该跳转到官方网站，但结果被手机的操作系统劫持跳转到某品牌的应用商店，这样的行为对广告主来说投递效果很差（渠道包往往会有很高的抽成），所以对于这种数据要特殊处理</p>
+<p>（2）重复发送问题。由于硬件和第三方平台的不可靠，同一个事件可能错误的被多次触发。 例如明明只有一个用户看到了广告，所属平台只需要发起一次回调请求。但平台因为自身软件的问题或者网络原因，可能出现重复发送的情况（传递了两次一模一样的数据），这种情况我可能不常发生，但硬件和第三方都是不可靠的，需要进行预防处理，否则会影响数据分析和广告主界面展示数据的准确性</p>
+<p>（3）归因的时间窗口。证明广告有效性的时间窗口 例如在今天打了广告，如果时间窗口为7天，那么七天内有下载事件发生则可以认为是广告产生的作用而不是自然引发的下载。如果时间窗口错误，那么会丢失利润。比如早上看到的消息，晚上才想起来下载的情况</p>
+
+                
+              </div>
+            
+            <hr/>
+            <div>
+              <div class="post-metas my-3">
+  
+    <div class="post-meta mr-3 d-flex align-items-center">
+      <i class="iconfont icon-category"></i>
+      
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/%E4%B8%9A%E5%8A%A1/" class="category-chain-item">业务</a>
+  
+  
+
+      </span>
+    
+  
+</span>
+
+    </div>
+  
+  
+    <div class="post-meta">
+      <i class="iconfont icon-tags"></i>
+      
+        <a href="/tags/%E7%A8%8B%E5%BA%8F%E5%8C%96%E5%B9%BF%E5%91%8A/" class="print-no-link">#程序化广告</a>
+      
+    </div>
+  
+</div>
+
+
+              
+  
+
+  <div class="license-box my-3">
+    <div class="license-title">
+      <div>程序化广告--信息收集平台业务梳理</div>
+      <div>http://example.com/2024/04/25/程序化广告-信息收集平台业务梳理/</div>
+    </div>
+    <div class="license-meta">
+      
+        <div class="license-meta-item">
+          <div>作者</div>
+          <div>Cygnus</div>
+        </div>
+      
+      
+        <div class="license-meta-item license-meta-date">
+          <div>发布于</div>
+          <div>2024年4月25日</div>
+        </div>
+      
+      
+      
+        <div class="license-meta-item">
+          <div>许可协议</div>
+          <div>
+            
+              
+              
+                <a class="print-no-link" target="_blank" href="https://creativecommons.org/licenses/by/4.0/">
+                  <span class="hint--top hint--rounded" aria-label="BY - 署名">
+                    <i class="iconfont icon-by"></i>
+                  </span>
+                </a>
+              
+            
+          </div>
+        </div>
+      
+    </div>
+    <div class="license-icon iconfont"></div>
+  </div>
+
+
+
+              
+                <div class="post-prevnext my-3">
+                  <article class="post-prev col-6">
+                    
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2024/04/23/Golang%E5%9E%83%E5%9C%BE%E5%9B%9E%E6%94%B6/" title="Golang垃圾回收">
+                        <span class="hidden-mobile">Golang垃圾回收</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar" style="margin-left: -1rem">
+    <div id="toc">
+  <p class="toc-header">
+    <i class="iconfont icon-list"></i>
+    <span>目录</span>
+  </p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+
+
+  </aside>
+
+
+    </div>
+  </div>
+</div>
+
+
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+
+
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v" for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    
+
+    
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+  
+  
+  
+  
+</div>
+
+  </footer>
+
+  <!-- Scripts -->
+  
+  <script  src="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://lib.baomitu.com/jquery/3.6.4/jquery.min.js" ></script>
+<script  src="https://lib.baomitu.com/twitter-bootstrap/4.6.1/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+
+  <script  src="https://lib.baomitu.com/typed.js/2.0.12/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var subtitle = document.getElementById('subtitle');
+      if (!subtitle || !typing) {
+        return;
+      }
+      var text = subtitle.getAttribute('data-typed-text');
+      
+        typing(text);
+      
+    })(window, document);
+  </script>
+
+
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/tocbot/4.20.1/tocbot.min.js', function() {
+    var toc = jQuery('#toc');
+    if (toc.length === 0 || !window.tocbot) { return; }
+    var boardCtn = jQuery('#board-ctn');
+    var boardTop = boardCtn.offset().top;
+
+    window.tocbot.init(Object.assign({
+      tocSelector     : '#toc-body',
+      contentSelector : '.markdown-body',
+      linkClass       : 'tocbot-link',
+      activeLinkClass : 'tocbot-active-link',
+      listClass       : 'tocbot-list',
+      isCollapsedClass: 'tocbot-is-collapsed',
+      collapsibleClass: 'tocbot-is-collapsible',
+      scrollSmooth    : true,
+      includeTitleTags: true,
+      headingsOffset  : -boardTop,
+    }, CONFIG.toc));
+    if (toc.find('.toc-list-item').length > 0) {
+      toc.css('visibility', 'visible');
+    }
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('tocbot' in window) {
+        tocbot.refresh();
+        var toc = jQuery('#toc');
+        if (toc.length === 0 || !tocbot) {
+          return;
+        }
+        if (toc.find('.toc-list-item').length > 0) {
+          toc.css('visibility', 'visible');
+        }
+      }
+    });
+  });
+</script>
+
+
+  <script src=https://lib.baomitu.com/clipboard.js/2.0.11/clipboard.min.js></script>
+
+  <script>Fluid.plugins.codeWidget();</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/anchor-js/4.3.1/anchor.min.js', function() {
+    window.anchors.options = {
+      placement: CONFIG.anchorjs.placement,
+      visible  : CONFIG.anchorjs.visible
+    };
+    if (CONFIG.anchorjs.icon) {
+      window.anchors.options.icon = CONFIG.anchorjs.icon;
+    }
+    var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+    var res = [];
+    for (var item of el) {
+      res.push('.markdown-body > ' + item.trim());
+    }
+    if (CONFIG.anchorjs.placement === 'left') {
+      window.anchors.options.class = 'anchorjs-link-left';
+    }
+    window.anchors.add(res.join(', '));
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('anchors' in window) {
+        anchors.removeAll();
+        var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+        var res = [];
+        for (var item of el) {
+          res.push('.markdown-body > ' + item.trim());
+        }
+        if (CONFIG.anchorjs.placement === 'left') {
+          anchors.options.class = 'anchorjs-link-left';
+        }
+        anchors.add(res.join(', '));
+      }
+    });
+  });
+</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.js', function() {
+    Fluid.plugins.fancyBox();
+  });
+</script>
+
+
+  <script>Fluid.plugins.imageCaption();</script>
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+
+
+<!-- 主题的启动项，将它保持在最底部 -->
+<!-- the boot of the theme, keep it at the bottom -->
+<script  src="/js/boot.js" ></script>
+
+
+  
+
+  <noscript>
+    <div class="noscript-warning">博客在允许 JavaScript 运行的环境下浏览效果更佳</div>
+  </noscript>
+</body>
+</html>
