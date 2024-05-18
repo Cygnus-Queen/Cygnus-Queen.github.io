@@ -24,9 +24,8 @@
 <meta property="og:description" content="课程地址 本次实验是需要完成trap相关的实验内容，主要是加深对trap的理解，理论知识包含在 [xv6-book-Chapter4 - Cygnus的博客 (cygnus-queen.github.io) Alarm 其实这是一个相当有趣的实验。在完成一些项目时，我们总是需要对计算资源的使用情况进行分析，其中CPU资源的利用率是非常重要的分析指标。经常可能会有进程占据了过多的CPU资源长时">
 <meta property="og:locale" content="zh_CN">
 <meta property="og:image" content="http://example.com/2024/03/13/Lab4-Trap/Pasted%20image%2020240313123317.png">
-<meta property="og:image" content="http://example.com/2024/03/13/Lab4-Trap/Pasted%20image%2020240313123317.png">
 <meta property="article:published_time" content="2024-03-13T06:32:35.000Z">
-<meta property="article:modified_time" content="2024-05-08T08:22:53.951Z">
+<meta property="article:modified_time" content="2024-05-08T14:11:01.535Z">
 <meta property="article:author" content="Cygnus">
 <meta property="article:tag" content="xv6">
 <meta name="twitter:card" content="summary_large_image">
@@ -280,9 +279,8 @@
 <p>本次实验是需要完成trap相关的实验内容，主要是加深对trap的理解，理论知识包含在 [<a target="_blank" rel="noopener" href="https://cygnus-queen.github.io/2024/03/07/xv6-book-Chapter4/">xv6-book-Chapter4 - Cygnus的博客 (cygnus-queen.github.io)</a></p>
 <h2 id="alarm">Alarm</h2>
 <p>其实这是一个相当有趣的实验。在完成一些项目时，我们总是需要对计算资源的使用情况进行分析，其中CPU资源的利用率是非常重要的分析指标。经常可能会有进程占据了过多的CPU资源长时间运行（占用多个CPU时钟）。</p>
-<p><img src="Pasted%20image%2020240313123317.png" srcset="/img/loading.gif" lazyload></p>
-<p>本次实验主要是实现两个系统调用</p>
-<p>Alram(int,void(* )())、sigreturn()。通过这两个系统实现alarm功能，<strong>监测用户程序使用CPU的时长</strong>（以时钟中断为单位），从而对用户程序发出提醒。</p>
+<p>本次实验主要是实现两个系统调用Alram(int,void(* )())、sigreturn()。</p>
+<p>通过这两个系统实现alarm功能，<strong>监测用户程序使用CPU的时长</strong>（以时钟中断为单位），从而对用户程序发出提醒。</p>
 <ul>
 <li><p><strong>sigalarm</strong>：第一个参数是设置时钟中断个数当达到个数时调用指定函数，第二个参数时设置alarm的处理函数。</p></li>
 <li><p><strong>sigreturn</strong>：在alarm处理函数中执行完所以代码后调用，主要功能是<strong>恢复中断前的状态</strong>。</p></li>
