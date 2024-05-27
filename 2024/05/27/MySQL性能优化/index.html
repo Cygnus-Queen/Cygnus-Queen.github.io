@@ -16,25 +16,22 @@
   <meta name="author" content="Cygnus">
   <meta name="keywords" content="">
   
-    <meta name="description" content="AnimateDiff: Animate Your Personalized Text-to-Image Diffusion Models without Specific Tuning](https:&#x2F;&#x2F;github.com&#x2F;guoyww&#x2F;animatediff&#x2F;)) 阅读时间：2023-11-20阅读目的：在做视频大模型相关的项目，涉及到解决视频一致性问题，SD+AnimateDiff是一个比">
+    <meta name="description" content="Explain 用来分析 SELECT 查询语句，比较重要的字段有3个：（1）selct_type    查询类型：简单查询、联合查询、子查询等（2）key    使用的索引（3）rows    扫描的行数 1、优化数据访问（1）只返回必要的列，可以多使用limit    没必要一直 select （2）*使用覆盖索引避免回表（3）缓存重复查询的数据    缓存带来的查询性能提升将会是非常明显的">
 <meta property="og:type" content="article">
-<meta property="og:title" content="AdimateDiff">
-<meta property="og:url" content="http://example.com/2023/11/20/AdimateDiff/index.html">
+<meta property="og:title" content="MySQL性能优化">
+<meta property="og:url" content="http://example.com/2024/05/27/MySQL%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96/index.html">
 <meta property="og:site_name" content="Cygnus的博客">
-<meta property="og:description" content="AnimateDiff: Animate Your Personalized Text-to-Image Diffusion Models without Specific Tuning](https:&#x2F;&#x2F;github.com&#x2F;guoyww&#x2F;animatediff&#x2F;)) 阅读时间：2023-11-20阅读目的：在做视频大模型相关的项目，涉及到解决视频一致性问题，SD+AnimateDiff是一个比">
+<meta property="og:description" content="Explain 用来分析 SELECT 查询语句，比较重要的字段有3个：（1）selct_type    查询类型：简单查询、联合查询、子查询等（2）key    使用的索引（3）rows    扫描的行数 1、优化数据访问（1）只返回必要的列，可以多使用limit    没必要一直 select （2）*使用覆盖索引避免回表（3）缓存重复查询的数据    缓存带来的查询性能提升将会是非常明显的">
 <meta property="og:locale" content="zh_CN">
-<meta property="og:image" content="http://example.com/2023/11/20/AdimateDiff/20231120183911.png">
-<meta property="og:image" content="http://example.com/2023/11/20/AdimateDiff/20231120183927.png">
-<meta property="article:published_time" content="2023-11-20T10:58:04.000Z">
-<meta property="article:modified_time" content="2023-11-20T10:59:18.198Z">
+<meta property="article:published_time" content="2024-05-27T07:56:44.000Z">
+<meta property="article:modified_time" content="2024-05-27T07:59:03.519Z">
 <meta property="article:author" content="Cygnus">
-<meta property="article:tag" content="视频生成">
+<meta property="article:tag" content="MySQL, 数据库">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:image" content="http://example.com/2023/11/20/AdimateDiff/20231120183911.png">
   
   
   
-  <title>AdimateDiff - Cygnus的博客</title>
+  <title>MySQL性能优化 - Cygnus的博客</title>
 
   <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
 
@@ -200,7 +197,7 @@
       <div class="banner-text text-center fade-in-up">
         <div class="h2">
           
-            <span id="subtitle" data-typed-text="AdimateDiff"></span>
+            <span id="subtitle" data-typed-text="MySQL性能优化"></span>
           
         </div>
 
@@ -211,8 +208,8 @@
     
       <span class="post-meta">
         <i class="iconfont icon-date-fill" aria-hidden="true"></i>
-        <time datetime="2023-11-20 18:58" pubdate>
-          2023年11月20日 晚上
+        <time datetime="2024-05-27 15:56" pubdate>
+          2024年5月27日 下午
         </time>
       </span>
     
@@ -223,7 +220,7 @@
       <span class="post-meta mr-2">
         <i class="iconfont icon-chart"></i>
         
-          893 字
+          1k 字
         
       </span>
     
@@ -234,7 +231,7 @@
         
         
         
-          8 分钟
+          9 分钟
         
       </span>
     
@@ -271,23 +268,15 @@
       <div class="container nopadding-x-md" id="board-ctn">
         <div id="board">
           <article class="post-content mx-auto">
-            <h1 id="seo-header">AdimateDiff</h1>
+            <h1 id="seo-header">MySQL性能优化</h1>
             
             
               <div class="markdown-body">
                 
-                <p><a href="[guoyww/AnimateDiff: Official implementation of AnimateDiff. (github.com">AnimateDiff: Animate Your Personalized Text-to-Image Diffusion Models without Specific Tuning</a>](<a target="_blank" rel="noopener" href="https://github.com/guoyww/animatediff/">https://github.com/guoyww/animatediff/</a>))</p>
-<p>阅读时间：2023-11-20<br>阅读目的：在做视频大模型相关的项目，涉及到解决<strong>视频一致性</strong>问题，SD+AnimateDiff是一个比较成熟的方式，通过阅读论文看看他是怎么做的</p>
-<h2 id="Abstract"><a href="#Abstract" class="headerlink" title="Abstract"></a>Abstract</h2><p>SD + lora和dreambooth等下游配套已经使得用户可以画出好看的图片，现在如今让图片动起来的需求越来越大。</p>
-<p>文章提出了一个框架，让图片在现有模型下运动起来。</p>
-<p>该框架的核心是在T2I模型中插入一个初始化的运动建模模块，并利用视频数据进行训练</p>
-<h2 id="Introduction"><a href="#Introduction" class="headerlink" title="Introduction"></a>Introduction</h2><p>现在有文本生成视频的需求，但是现有的T2V太复杂了（引用了Gen1、VDM、magicVideo三篇论文），个性化程度不高，用户不好使用，因此论文提出了一个运动建模模块，给定个性化T2I模式，例如用户训练或从Huggingface下载的DreamBooth或LoRA，目标是在保留其原始领域知识和质量的同时，将其转换为几乎没有训练成本的动画生成器</p>
-<p>例如：如果T2I模型是经过个性化操作的（引入了lora），在这种情况下，模型应该能够生成个性化的动画片段。能做到前景/背景分割、角色身体运动等</p>
-<h2 id="Preliminaries"><a href="#Preliminaries" class="headerlink" title="Preliminaries"></a>Preliminaries</h2><p>让图片动起来的核心是学习到时序特征，这点T2V模型可以做到。但是个性化的图片常有，个性化的视频却不常有，使用大量个性化的视频训练一个模型并不合理。因此作者选择训练一个可推广的运动建模模块，并在推理时将其插入个性化的T2I模型。</p>
-<p><img src="20231120183911.png" srcset="/img/loading.gif" lazyload alt="框架图"></p>
-<p>运动建模模块的细节<br><img src="20231120183927.png" srcset="/img/loading.gif" lazyload alt="模块细节"></p>
-<p>大体和VDM等没区别，主要在于AnimateDiff冻结SD，只训练自己的模块</p>
-<h2 id="我的看法"><a href="#我的看法" class="headerlink" title="我的看法"></a>我的看法</h2><p>作者通过插入额外的初始化运动建模模块，并在视频数据上进行训练。这种方法其实和magicEdit类似：SD就负责生成图片、额外再训练一个用来保证结构完整的模块和用来时序建模的模块。将视频生成的三个核心（图像语义、运动一致性、结构控制）解耦。</p>
+                <p>Explain 用来分析 SELECT 查询语句，比较重要的字段有3个：<br>（1）selct_type<br>    查询类型：简单查询、联合查询、子查询等<br>（2）key<br>    使用的索引<br>（3）rows<br>    扫描的行数</p>
+<h2 id="1、优化数据访问"><a href="#1、优化数据访问" class="headerlink" title="1、优化数据访问"></a>1、优化数据访问</h2><p>（1）只返回必要的列，可以多使用limit<br>    没必要一直 select <em><br>（2）<em>*使用覆盖索引避免回表</em></em><br>（3）缓存重复查询的数据<br>    缓存带来的查询性能提升将会是非常明显的</p>
+<h2 id="2、重构查询方式"><a href="#2、重构查询方式" class="headerlink" title="2、重构查询方式"></a>2、重构查询方式</h2><p>（1）切分大查询<br>    一个大查询如果一次性执行的话，可能一次锁住很多数据、占满整个事务日志、耗尽系统资源、阻塞很多小的但重要的查询。<br>    比如定期删除旧数据的场景，不要一口气删除，而是一次删一部分。<br><figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><code class="hljs sql">DELEFT <span class="hljs-keyword">FROM</span> messages <span class="hljs-keyword">WHERE</span> <span class="hljs-keyword">create</span> <span class="hljs-operator">&lt;</span> DATE_SUB(NOW(), <span class="hljs-type">INTERVAL</span> <span class="hljs-number">3</span> <span class="hljs-keyword">MONTH</span>);<br><br>rows_affected <span class="hljs-operator">=</span> <span class="hljs-number">0</span> <br>do &#123; <br>	rows_affected <span class="hljs-operator">=</span> do_query( &quot;DELETE FROM messages WHERE create &lt; DATE_SUB(NOW(), INTERVAL 3 MONTH) LIMIT 10000&quot;) <br>&#125; while rows_affected <span class="hljs-operator">&gt;</span> <span class="hljs-number">0</span><br></code></pre></td></tr></table></figure></p>
+<p>（2）分解大连接查询<br>    将一个大连接查询分解成对每一个表进行一次单表查询，然后将结果在应用程序中进行关联<br>    好处：<br>        让缓存更高效：对于连接查询，如果其中一个表发生变化，那么整个查询缓存就无法使用。而分解后的多个查询，即使其中一个表发生变化，对其它表的查询缓存依然可以使用<br>        分解成多个单表查询：这些单表查询的缓存结果更可能被其它查询使用到，从而减少冗余记录的查询<br>        减少锁竞争<br>        在应用层进行连接，可以更容易对数据库进行拆分，从而更容易做到高性能和可伸缩<br>        查询本身效率也可能会有所提升<br><figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><code class="hljs sql">#修改前<br><span class="hljs-keyword">SELECT</span> <span class="hljs-operator">*</span> <span class="hljs-keyword">FROM</span> tab <br><span class="hljs-keyword">JOIN</span> tag_post <span class="hljs-keyword">ON</span> tag_post.tag_id<span class="hljs-operator">=</span>tag.id <br><span class="hljs-keyword">JOIN</span> post <span class="hljs-keyword">ON</span> tag_post.post_id<span class="hljs-operator">=</span>post.id <br><span class="hljs-keyword">WHERE</span> tag.tag<span class="hljs-operator">=</span><span class="hljs-string">&#x27;mysql&#x27;</span>;<br><br>#修改后<br><span class="hljs-keyword">SELECT</span> <span class="hljs-operator">*</span> <span class="hljs-keyword">FROM</span> tag <span class="hljs-keyword">WHERE</span> tag<span class="hljs-operator">=</span><span class="hljs-string">&#x27;mysql&#x27;</span>; <br><span class="hljs-keyword">SELECT</span> <span class="hljs-operator">*</span> <span class="hljs-keyword">FROM</span> tag_post <span class="hljs-keyword">WHERE</span> tag_id<span class="hljs-operator">=</span><span class="hljs-number">1234</span>; <br><span class="hljs-keyword">SELECT</span> <span class="hljs-operator">*</span> <span class="hljs-keyword">FROM</span> post <span class="hljs-keyword">WHERE</span> post.id <span class="hljs-keyword">IN</span> (<span class="hljs-number">123</span>,<span class="hljs-number">456</span>,<span class="hljs-number">567</span>,<span class="hljs-number">9098</span>,<span class="hljs-number">8904</span>);<br><br></code></pre></td></tr></table></figure></p>
 
                 
               </div>
@@ -306,7 +295,7 @@
     
       <span class="category-chain">
         
-  <a href="/categories/%E5%A4%A7%E6%A8%A1%E5%9E%8B/" class="category-chain-item">大模型</a>
+  <a href="/categories/%E5%90%8E%E7%AB%AF/" class="category-chain-item">后端</a>
   
   
 
@@ -321,7 +310,7 @@
     <div class="post-meta">
       <i class="iconfont icon-tags"></i>
       
-        <a href="/tags/%E8%A7%86%E9%A2%91%E7%94%9F%E6%88%90/" class="print-no-link">#视频生成</a>
+        <a href="/tags/MySQL-%E6%95%B0%E6%8D%AE%E5%BA%93/" class="print-no-link">#MySQL, 数据库</a>
       
     </div>
   
@@ -333,8 +322,8 @@
 
   <div class="license-box my-3">
     <div class="license-title">
-      <div>AdimateDiff</div>
-      <div>http://example.com/2023/11/20/AdimateDiff/</div>
+      <div>MySQL性能优化</div>
+      <div>http://example.com/2024/05/27/MySQL性能优化/</div>
     </div>
     <div class="license-meta">
       
@@ -346,7 +335,7 @@
       
         <div class="license-meta-item license-meta-date">
           <div>发布于</div>
-          <div>2023年11月20日</div>
+          <div>2024年5月27日</div>
         </div>
       
       
@@ -378,18 +367,12 @@
                   <article class="post-prev col-6">
                     
                     
-                      <a href="/2023/11/21/%E5%88%86%E5%B8%83%E5%BC%8F%E8%AE%AD%E7%BB%83/" title="分布式训练">
-                        <i class="iconfont icon-arrowleft"></i>
-                        <span class="hidden-mobile">分布式训练</span>
-                        <span class="visible-mobile">上一篇</span>
-                      </a>
-                    
                   </article>
                   <article class="post-next col-6">
                     
                     
-                      <a href="/2023/11/18/MasaCtrl/" title="MasaCtrl">
-                        <span class="hidden-mobile">MasaCtrl</span>
+                      <a href="/2024/05/26/Redis%E8%B0%83%E4%BC%98%E7%AD%96%E7%95%A5/" title="Redis调优策略">
+                        <span class="hidden-mobile">Redis调优策略</span>
                         <span class="visible-mobile">下一篇</span>
                         <i class="iconfont icon-arrowright"></i>
                       </a>
