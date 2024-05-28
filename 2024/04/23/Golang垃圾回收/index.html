@@ -16,12 +16,12 @@
   <meta name="author" content="Cygnus">
   <meta name="keywords" content="">
   
-    <meta name="description" content="详情见go专家编程https:&#x2F;&#x2F;books.studygolang.com&#x2F;GoExpertProgramming&#x2F;chapter04&#x2F;4.2-garbage_collection.html https:&#x2F;&#x2F;xargin.com&#x2F;impl-of-go-gc&#x2F; 本文主要是进行了浓缩并加上自己的理解  Golang的垃圾回收（GC）也是内存管理的一部分，了解垃圾回收最好先了解前面介绍的内存分配原理">
+    <meta name="description" content="详情见go专家编程 https:&#x2F;&#x2F;books.studygolang.com&#x2F;GoExpertProgramming&#x2F;chapter04&#x2F;4.2-garbage_collection.html https:&#x2F;&#x2F;xargin.com&#x2F;impl-of-go-gc&#x2F; 本文主要是进行了浓缩并加上自己的理解  Golang的垃圾回收（GC）也是内存管理的一部分，了解垃圾回收最好先了解前面介绍的内存">
 <meta property="og:type" content="article">
 <meta property="og:title" content="Golang垃圾回收">
 <meta property="og:url" content="http://example.com/2024/04/23/Golang%E5%9E%83%E5%9C%BE%E5%9B%9E%E6%94%B6/index.html">
 <meta property="og:site_name" content="Cygnus的博客">
-<meta property="og:description" content="详情见go专家编程https:&#x2F;&#x2F;books.studygolang.com&#x2F;GoExpertProgramming&#x2F;chapter04&#x2F;4.2-garbage_collection.html https:&#x2F;&#x2F;xargin.com&#x2F;impl-of-go-gc&#x2F; 本文主要是进行了浓缩并加上自己的理解  Golang的垃圾回收（GC）也是内存管理的一部分，了解垃圾回收最好先了解前面介绍的内存分配原理">
+<meta property="og:description" content="详情见go专家编程 https:&#x2F;&#x2F;books.studygolang.com&#x2F;GoExpertProgramming&#x2F;chapter04&#x2F;4.2-garbage_collection.html https:&#x2F;&#x2F;xargin.com&#x2F;impl-of-go-gc&#x2F; 本文主要是进行了浓缩并加上自己的理解  Golang的垃圾回收（GC）也是内存管理的一部分，了解垃圾回收最好先了解前面介绍的内存">
 <meta property="og:locale" content="zh_CN">
 <meta property="og:image" content="http://example.com/2024/04/23/Golang%E5%9E%83%E5%9C%BE%E5%9B%9E%E6%94%B6/Pasted%20image%2020240423141732.png">
 <meta property="og:image" content="http://example.com/2024/04/23/Golang%E5%9E%83%E5%9C%BE%E5%9B%9E%E6%94%B6/Pasted%20image%2020240423142850.png">
@@ -277,65 +277,70 @@
             
               <div class="markdown-body">
                 
-                <p>详情见go专家编程<br><a target="_blank" rel="noopener" href="https://books.studygolang.com/GoExpertProgramming/chapter04/4.2-garbage_collection.html">https://books.studygolang.com/GoExpertProgramming/chapter04/4.2-garbage_collection.html</a></p>
-<p><a target="_blank" rel="noopener" href="https://xargin.com/impl-of-go-gc/">https://xargin.com/impl-of-go-gc/</a></p>
+                <p>详情见go专家编程 https://books.studygolang.com/GoExpertProgramming/chapter04/4.2-garbage_collection.html</p>
+<p>https://xargin.com/impl-of-go-gc/</p>
 <p>本文主要是进行了浓缩并加上自己的理解</p>
 <hr>
 <p>Golang的垃圾回收（GC）也是内存管理的一部分，了解垃圾回收最好先了解前面介绍的<a target="_blank" rel="noopener" href="https://cygnus-queen.github.io/2024/04/22/Golang%E5%86%85%E5%AD%98%E5%88%86%E9%85%8D/">内存分配</a>原理</p>
 <figure class="highlight"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs">问题：什么是垃圾回收？<br>答案：内存中即有已分配掉的内存，也有未分配的内存，垃圾回收的目标就是把那些已经分配的但没有对象引用的内存找出来并回收掉<br></code></pre></td></tr></table></figure>
-<h2 id="业界常见的垃圾回收算法"><a href="#业界常见的垃圾回收算法" class="headerlink" title="业界常见的垃圾回收算法"></a>业界常见的垃圾回收算法</h2><p>业界常见的垃圾回收算法有以下几种：<br>（1）引用计数：对每个对象维护一个引用计数，当引用该对象的对象被销毁时，引用计数减1，当引用计数器为0是回收该对象。（xv6文件管理也是这样）</p>
-<pre><code class="hljs">- 优点：对象可以很快的被回收，不会出现内存耗尽或达到某个阀值时才回收。
-- 缺点：不能很好的处理循环引用，而且实时维护引用计数，有也一定的代价。
-- 代表语言：Python、PHP、Swift
-</code></pre><p>（2）标记-清除：从根变量开始遍历所有引用的对象，引用的对象标记为”被引用”，没有被标记的进行回收。</p>
-<pre><code class="hljs">- 优点：解决了引用计数的缺点。
-- 缺点：需要STW，即要暂时停掉程序运行。
-- 代表语言：Golang(其采用三色标记法)
-</code></pre><p>（3）分代收集：按照对象生命周期长短划分不同的代空间，生命周期长的放入老年代，而短的放入新生代，不同代有不能的回收算法和回收频率。</p>
-<pre><code class="hljs">- 优点：回收性能好
-- 缺点：算法复杂
-- 代表语言： JAVA
-</code></pre><h2 id="Golang内存管理"><a href="#Golang内存管理" class="headerlink" title="Golang内存管理"></a>Golang内存管理</h2><p>go将堆空间划分成三层，依次满足不同的分配需求：<br>（1）将与操作系统申请内存对接分装成堆（mheap）层<br>（2）为用户程序分配内存的逻辑分装成mcentral层<br>（3）为了实现无锁分配，在每个调度资源P上增加了mcache层</p>
-<p><img src="Pasted image 20240423141732.png" srcset="/img/loading.gif" lazyload alt></p>
+<h2 id="业界常见的垃圾回收算法">业界常见的垃圾回收算法</h2>
+<p>业界常见的垃圾回收算法有以下几种： （1）引用计数：对每个对象维护一个引用计数，当引用该对象的对象被销毁时，引用计数减1，当引用计数器为0是回收该对象。（xv6文件管理也是这样） - 优点：对象可以很快的被回收，不会出现内存耗尽或达到某个阀值时才回收。 - 缺点：不能很好的处理循环引用，而且实时维护引用计数，有也一定的代价。 - 代表语言：Python、PHP、Swift</p>
+<p>（2）标记-清除：从根变量开始遍历所有引用的对象，引用的对象标记为&quot;被引用&quot;，没有被标记的进行回收。 - 优点：解决了引用计数的缺点。 - 缺点：需要STW，即要暂时停掉程序运行。 - 代表语言：Golang(其采用三色标记法)</p>
+<p>（3）分代收集：按照对象生命周期长短划分不同的代空间，生命周期长的放入老年代，而短的放入新生代，不同代有不能的回收算法和回收频率。 - 优点：回收性能好 - 缺点：算法复杂 - 代表语言： JAVA</p>
+<h2 id="golang内存管理">Golang内存管理</h2>
+<p>go将堆空间划分成三层，依次满足不同的分配需求： （1）将与操作系统申请内存对接分装成堆（mheap）层 （2）为用户程序分配内存的逻辑分装成mcentral层 （3）为了实现无锁分配，在每个调度资源P上增加了mcache层</p>
+<p><img src="Pasted%20image%2020240423141732.png" srcset="/img/loading.gif" lazyload></p>
 <p>go将从操作系统申请的页划分成多种规格，分配时根据对象大小到对应规格的页分配。应用程序在申请小对象时，首先先向mcache申请，无锁分配，当mcache没有空间时，才向mcentral加锁申请一页规格。</p>
 <p>go将内存分为三块，分别是bitmap,spans,arena三块区域。其中arena是存储数据的区域，大小为512G，spans是存储mspan结构体指针的区域，mspan用于管理规格页的分配和回收，大小为512M,bitmap用于分配和GC，给分配到span中的每个对象用1bit来表示是否占用，大小为16G</p>
-<p>  <img src="Pasted image 20240423142850.png" srcset="/img/loading.gif" lazyload alt></p>
+<p><img src="Pasted%20image%2020240423142850.png" srcset="/img/loading.gif" lazyload></p>
 <p>这三块区域不属于任何一层，是共用的，其中spans可以理解为索引，arena理解为数据区，bitmap是GC索引</p>
 <p>这些区域是向mheap区惰性申请，未分配的mspans属于mcentral,已经分配或部分分配的属于mcache</p>
 <p><strong>总之：go的内存是按8k大小的页来分配的，每一个8k大小的页由一个mspan结构体进行管理，划分为多个规则，给指定大小范围的对象分配空间</strong></p>
-<h2 id="Golang垃圾回收"><a href="#Golang垃圾回收" class="headerlink" title="Golang垃圾回收"></a>Golang垃圾回收</h2><h3 id="什么时候对象会变成垃圾？"><a href="#什么时候对象会变成垃圾？" class="headerlink" title="什么时候对象会变成垃圾？"></a>什么时候对象会变成垃圾？</h3><p>在程序运行的角度上看，堆的空间是在运行时决定的，堆的对象必须从栈上或DATA、BSS区上的指针一路索引才能被找到</p>
+<h2 id="golang垃圾回收">Golang垃圾回收</h2>
+<h3 id="什么时候对象会变成垃圾">什么时候对象会变成垃圾？</h3>
+<p>在程序运行的角度上看，堆的空间是在运行时决定的，堆的对象必须从栈上或DATA、BSS区上的指针一路索引才能被找到</p>
 <p>因此：<strong>对象在无法被栈、DATA、BSS区上的指针索引到的时候变成垃圾</strong></p>
-<h3 id="标记阶段—-如何标记垃圾？（三色标记法）"><a href="#标记阶段—-如何标记垃圾？（三色标记法）" class="headerlink" title="标记阶段—-如何标记垃圾？（三色标记法）"></a>标记阶段—-如何标记垃圾？（三色标记法）</h3><p>将所有的内存空间看成槽，每个槽内可以放一个对象或者没有对象，用三种颜色标记槽的状态</p>
-<p>简单来说：<br>GC启动时，初始化所有对象为白色。GC将根对象（bss段、date段、协程栈）标记为灰色加入队列进行广搜，将能遍历到的对象都标记为灰色并加入队列，被遍历过的灰色对象更新为黑色，当队列为空时所有白色对象都是需要清理的目标</p>
+<h3 id="标记阶段---如何标记垃圾三色标记法">标记阶段---如何标记垃圾？（三色标记法）</h3>
+<p>将所有的内存空间看成槽，每个槽内可以放一个对象或者没有对象，用三种颜色标记槽的状态</p>
+<p>简单来说： GC启动时，初始化所有对象为白色。GC将根对象（bss段、date段、协程栈）标记为灰色加入队列进行广搜，将能遍历到的对象都标记为灰色并加入队列，被遍历过的灰色对象更新为黑色，当队列为空时所有白色对象都是需要清理的目标</p>
 <figure class="highlight powershell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs powershell">问题：为什么需要三色标记法？<br>答案：三色抽象主要是为了能让垃圾回收流程与应用流程并发执行，这样将对象扫描过程拆分为多个阶段，而不需要一次性完成整个扫描流程，避免STW。（早期的<span class="hljs-built_in">GC</span>需要暂停用户协程的运行）<br></code></pre></td></tr></table></figure>
-<h4 id="写屏障"><a href="#写屏障" class="headerlink" title="写屏障"></a>写屏障</h4><p>三色标记法在静态标记堆对象上是完全足够的，但如果指针指向的对象存在变化的话，三色标记法存在漏标和错标的情况，比如黑色对象的指针指向的对象被改变。</p>
-<p>因此要引入两个原则来防止错误：<br>（1）强三色不变：禁止黑色对象指向白色对象（解决黑色对象指针变化的情况）<br>（2）弱三色不变性：黑色对象可以指向白色对象，但指向的白色对象，必须有能从灰色对象可达的路径</p>
-<p>实现这两个原则的方法被称为写屏障，写屏障不对栈上的指针变化生效，只应用在堆上：<br>（1）插入写屏障解决黑色对象指针变化的情况，黑色对象不会指向白色对象。<br>（2）删除写屏障是为了防止栈上指针的变化，任何从堆上白色对象的指针中删除的对象都得到灰色保护</p>
+<h4 id="写屏障">写屏障</h4>
+<p>三色标记法在静态标记堆对象上是完全足够的，但如果指针指向的对象存在变化的话，三色标记法存在漏标和错标的情况，比如黑色对象的指针指向的对象被改变。</p>
+<p>因此要引入两个原则来防止错误： （1）强三色不变：禁止黑色对象指向白色对象（解决黑色对象指针变化的情况） （2）弱三色不变性：黑色对象可以指向白色对象，但指向的白色对象，必须有能从灰色对象可达的路径</p>
+<p>实现这两个原则的方法被称为写屏障，写屏障不对栈上的指针变化生效，只应用在堆上： （1）插入写屏障解决黑色对象指针变化的情况，黑色对象不会指向白色对象。 （2）删除写屏障是为了防止栈上指针的变化，任何从堆上白色对象的指针中删除的对象都得到灰色保护</p>
 <p><strong>目前Go使用的是混合屏障，对象被删除和插入都会标记为灰色</strong></p>
 <p><strong>写屏障类似一种开关，在GC的特定时机开启，开启后指针传递时会把指针标记，即本轮不回收，下次GC时再确定</strong></p>
-<h4 id="什么是根对象？"><a href="#什么是根对象？" class="headerlink" title="什么是根对象？"></a>什么是根对象？</h4><p>GC <strong>从根开始扫描的含义是从 .bss 段，.data 段以及 goroutine 的栈开始扫描</strong>，最终遍历整个堆上的对象树，对应了上文<strong>对象在无法被栈、DATA、BSS区上的指针索引到的时候变成垃圾</strong>。</p>
-<p><img src="Pasted image 20240423132144.png" srcset="/img/loading.gif" lazyload alt></p>
+<h4 id="什么是根对象">什么是根对象？</h4>
+<p>GC <strong>从根开始扫描的含义是从 .bss 段，.data 段以及 goroutine 的栈开始扫描</strong>，最终遍历整个堆上的对象树，对应了上文<strong>对象在无法被栈、DATA、BSS区上的指针索引到的时候变成垃圾</strong>。</p>
+<p><img src="Pasted%20image%2020240423132144.png" srcset="/img/loading.gif" lazyload></p>
 <p>标记过程是一个广度优先的遍历过程，扫描节点，将节点的子节点推到任务队列中，然后递归扫描子节点的子节点，直到所有工作队列都被排空为止。最后没有被遍历到的对象就是需要清除的对象</p>
-<h3 id="清扫阶段—-如何回收内存？"><a href="#清扫阶段—-如何回收内存？" class="headerlink" title="清扫阶段—-如何回收内存？"></a>清扫阶段—-如何回收内存？</h3><p>进程启动时会有两个特殊 goroutine：<br>（1）sweep.g，主要负责清扫死对象，合并相关的空闲页<br>（2）scvg.g，主要负责向操作系统归还内存</p>
+<h3 id="清扫阶段---如何回收内存">清扫阶段---如何回收内存？</h3>
+<p>进程启动时会有两个特殊 goroutine： （1）sweep.g，主要负责清扫死对象，合并相关的空闲页 （2）scvg.g，主要负责向操作系统归还内存</p>
 <p>当 GC 的标记流程结束之后，sweep goroutine 就会被唤醒，进行清扫工作，其实就是循环执行 sweepone -&gt; sweep。针对每个 mspan，sweep.g 的工作是将标记期间生成的 bitmap 替换掉分配时使用的 bitmap，也就是（gcmarkBits替换allocBits）</p>
-<p>此时：<br>（1）如果此时mspan中存活对象数 = 0，即所有 element 都变成了内存垃圾，那执行 freeSpan -&gt; 归还组成该 mspan 所使用的页，并更新全局的页分配器摘要信息<br>（2）如果 mspan 中没有空槽，说明所有对象都是存活的，将其放入 fullSwept 队列中<br>（3）如果 mspan 中有空槽，说明这个 mspan 还可以拿来做内存分配，将其放入 partialSweep 队列中</p>
-<p>之后“清道夫”被唤醒，执行线性流程，一路运行到将页内存归还给操作系统：</p>
-<ul>
-<li>bgscavenge -&gt; pageAlloc.scavenge -&gt; pageAlloc.scavengeOne -&gt; pageAlloc.scavengeRangeLocked -&gt; sysUnused -&gt; madvise</li>
-</ul>
-<h3 id="什么时候会发生STW？"><a href="#什么时候会发生STW？" class="headerlink" title="什么时候会发生STW？"></a>什么时候会发生STW？</h3><p>Go GC分为Mark和Sweep两大阶段。Mark阶段又分为三个步骤，其中两个会有STW，另一个会有延迟。</p>
-<p>Mark阶段：<br>（1）Mark Setup阶段-STW<br>    在gc开始时，必须执行的第一个动作是打开写屏障（Write Barrier）。写屏障的目的是允许垃圾收集器在垃圾收集期间维护堆上的数据完整性，因为垃圾收集器和应用程序将并发执行</p>
-<p>（2）Marking阶段-并发执行<br>    一旦写屏障打开，垃圾收集器就开始标记阶段。垃圾收集器所做的第一件事是占用25%CPU。垃圾收集器使用Goroutines进行垃圾收集工作，. 这意味着对于一个4线程的Go程序，一个P将专门用于垃圾收集工作<br>    如果垃圾收集器确定需要减慢内存分配，原本运行应用程序Goroutines会协助标记工作。应用程序Goroutine成为Mark Assist（协助标记）中的时间长度与它申请的堆内存成正比。Mark Assist有助于更快地完成垃圾收集<br>（3）Mark终止-STW<br>    关闭写屏障，执行各种清理任务</p>
-<p>Seep阶段：<br>    清理阶段用于回收标记阶段中标记出来的可回收的内存。当应用程序goroutine尝试在堆内存中分配新内存时，会触发该操作。<strong>清理导致的延迟被分散到每次内存分配时</strong></p>
-<h3 id="触发时机"><a href="#触发时机" class="headerlink" title="触发时机"></a>触发时机</h3><h4 id="阈值触发"><a href="#阈值触发" class="headerlink" title="阈值触发"></a>阈值触发</h4><p>每次内存分配时都会检查当前内存分配量是否已达到阀值，如果达到阀值则立即启动GC<br>阀值 = 上次GC内存分配量 * 内存增长率<br>内存增长率由环境变量<code>GOGC</code>控制，默认为100，即每当内存扩大一倍时启动GC</p>
-<h4 id="定时触发"><a href="#定时触发" class="headerlink" title="定时触发"></a>定时触发</h4><p>默认情况下，最长2分钟触发一次GC</p>
-<h4 id="手动触发"><a href="#手动触发" class="headerlink" title="手动触发"></a>手动触发</h4><p>程序代码中也可以使用<code>runtime.GC()</code>来手动触发GC。这主要用于GC性能测试和统计</p>
-<h2 id="如何减少GC？"><a href="#如何减少GC？" class="headerlink" title="如何减少GC？"></a>如何减少GC？</h2><p>所谓的减少GC，减少GC就是减少在堆上分配对象，同时避免内存逃逸（原本在栈上的对象跑到堆上，导致了GC压力变大）</p>
-<h4 id="哪些对象在堆上？"><a href="#哪些对象在堆上？" class="headerlink" title="哪些对象在堆上？"></a>哪些对象在堆上？</h4><p>（1）堆上的指针只能指向堆上的对象<br>（2）interface、chan、map所持有或转化为interface的对象都会在堆上<br>（3）函数内返回指针类型的，指针指向的对象会逃逸到堆上<br>（4）string类型一定在堆上<br>（5）切片扩容和拷贝在堆上</p>
-<h4 id="如何优化？"><a href="#如何优化？" class="headerlink" title="如何优化？"></a>如何优化？</h4><p>（1）slice和map知道大小的，预先分配足够的大小，避免扩容<br>（2）尽量少生成string，使用切片的方式复用string<br>（3）少用反射，被反射的对象都会分配到堆上<br>（4）使用sync.Pool复用对象，避免重复生产销毁对象<br>（5）尽量让chan传递较小的对象，所有chan传递的对象都会分配到堆上</p>
+<p>此时： （1）如果此时mspan中存活对象数 = 0，即所有 element 都变成了内存垃圾，那执行 freeSpan -&gt; 归还组成该 mspan 所使用的页，并更新全局的页分配器摘要信息 （2）如果 mspan 中没有空槽，说明所有对象都是存活的，将其放入 fullSwept 队列中 （3）如果 mspan 中有空槽，说明这个 mspan 还可以拿来做内存分配，将其放入 partialSweep 队列中</p>
+<p>之后“清道夫”被唤醒，执行线性流程，一路运行到将页内存归还给操作系统： - bgscavenge -&gt; pageAlloc.scavenge -&gt; pageAlloc.scavengeOne -&gt; pageAlloc.scavengeRangeLocked -&gt; sysUnused -&gt; madvise</p>
+<h3 id="什么时候会发生stw">什么时候会发生STW？</h3>
+<p>Go GC分为Mark和Sweep两大阶段。Mark阶段又分为三个步骤，其中两个会有STW，另一个会有延迟。</p>
+<p>Mark阶段： （1）Mark Setup阶段-STW 在gc开始时，必须执行的第一个动作是打开写屏障（Write Barrier）。写屏障的目的是允许垃圾收集器在垃圾收集期间维护堆上的数据完整性，因为垃圾收集器和应用程序将并发执行</p>
+<p>（2）Marking阶段-并发执行 一旦写屏障打开，垃圾收集器就开始标记阶段。垃圾收集器所做的第一件事是占用25%CPU。垃圾收集器使用Goroutines进行垃圾收集工作，. 这意味着对于一个4线程的Go程序，一个P将专门用于垃圾收集工作 如果垃圾收集器确定需要减慢内存分配，原本运行应用程序Goroutines会协助标记工作。应用程序Goroutine成为Mark Assist（协助标记）中的时间长度与它申请的堆内存成正比。Mark Assist有助于更快地完成垃圾收集 （3）Mark终止-STW 关闭写屏障，执行各种清理任务</p>
+<p>Seep阶段： 清理阶段用于回收标记阶段中标记出来的可回收的内存。当应用程序goroutine尝试在堆内存中分配新内存时，会触发该操作。<strong>清理导致的延迟被分散到每次内存分配时</strong></p>
+<h3 id="触发时机">触发时机</h3>
+<h4 id="阈值触发">阈值触发</h4>
+<p>每次内存分配时都会检查当前内存分配量是否已达到阀值，如果达到阀值则立即启动GC 阀值 = 上次GC内存分配量 * 内存增长率 内存增长率由环境变量<code>GOGC</code>控制，默认为100，即每当内存扩大一倍时启动GC</p>
+<h4 id="定时触发">定时触发</h4>
+<p>默认情况下，最长2分钟触发一次GC</p>
+<h4 id="手动触发">手动触发</h4>
+<p>程序代码中也可以使用<code>runtime.GC()</code>来手动触发GC。这主要用于GC性能测试和统计</p>
+<h2 id="如何减少gc">如何减少GC？</h2>
+<p>所谓的减少GC，减少GC就是减少在堆上分配对象，同时避免内存逃逸（原本在栈上的对象跑到堆上，导致了GC压力变大）</p>
+<h4 id="哪些对象在堆上">哪些对象在堆上？</h4>
+<p>（1）堆上的指针只能指向堆上的对象 （2）interface、chan、map所持有或转化为interface的对象都会在堆上 （3）函数内返回指针类型的，指针指向的对象会逃逸到堆上 （4）string类型一定在堆上 （5）切片扩容和拷贝在堆上</p>
+<h4 id="如何优化">如何优化？</h4>
+<p>（1）slice和map知道大小的，预先分配足够的大小，避免扩容 （2）尽量少生成string，使用切片的方式复用string （3）少用反射，被反射的对象都会分配到堆上 （4）使用sync.Pool复用对象，避免重复生产销毁对象 （5）尽量让chan传递较小的对象，所有chan传递的对象都会分配到堆上</p>
 <figure class="highlight powershell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs powershell">问题：函数传递指针真的比传值效率高吗？<br>答案：传递指针可以减少底层值的拷贝，可以提高效率，但是如果拷贝的数据量小，由于指针传递会产生逃逸，可能会使用堆，也可能会增加<span class="hljs-built_in">GC</span>的负担，所以传递指针不一定是高效的<br></code></pre></td></tr></table></figure>
-<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>（1）垃圾回收的目标就是把那些已经分配的但没有对象引用的内存找出来并回收<br>（2）业界常用的垃圾回收算法有引用计数、标记清扫、分代收集，而golang使用了三色标记法。<br>（3）简单来说，GC启动时，初始化所有能访问到的栈对象为黑色，堆对象为白色。GC将根对象（bss段、date段、协程栈）标记为灰色加入队列进行广搜，将能遍历到的对象都标记为灰色并加入队列，被遍历过的灰色对象更新为黑色，当队列为空时所有白色对象都是需要清理的目标。<br>（4）这样做的原因是让垃圾回收流程与应用流程可以并发执行。这样将对象扫描过程拆分为多个阶段，而不需要一次性完成整个扫描流程，避免STW</p>
-<p>这里放几个问题，用来校验知识的掌握程度：<br>（1）go的内存分配有几种模式？区别是什么？<br>（2）go的GC有哪几个阶段？其中哪个阶段有STW?STW的作用是什么？<br>（3）go有哪些对象是分配到堆上的，什么时候会逃逸到堆上？</p>
+<h2 id="总结">总结</h2>
+<p>（1）垃圾回收的目标就是把那些已经分配的但没有对象引用的内存找出来并回收 （2）业界常用的垃圾回收算法有引用计数、标记清扫、分代收集，而golang使用了三色标记法。 （3）简单来说，GC启动时，初始化所有能访问到的栈对象为黑色，堆对象为白色。GC将根对象（bss段、date段、协程栈）标记为灰色加入队列进行广搜，将能遍历到的对象都标记为灰色并加入队列，被遍历过的灰色对象更新为黑色，当队列为空时所有白色对象都是需要清理的目标。 （4）这样做的原因是让垃圾回收流程与应用流程可以并发执行。这样将对象扫描过程拆分为多个阶段，而不需要一次性完成整个扫描流程，避免STW</p>
+<p>这里放几个问题，用来校验知识的掌握程度： （1）go的内存分配有几种模式？区别是什么？ （2）go的GC有哪几个阶段？其中哪个阶段有STW?STW的作用是什么？ （3）go有哪些对象是分配到堆上的，什么时候会逃逸到堆上？</p>
 
                 
               </div>
