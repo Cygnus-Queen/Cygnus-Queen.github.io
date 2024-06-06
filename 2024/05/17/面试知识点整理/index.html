@@ -16,12 +16,12 @@
   <meta name="author" content="Cygnus">
   <meta name="keywords" content="">
   
-    <meta name="description" content="自我介绍： 面试官您好 ，我叫蒋健君，是一名来自电子科技大学的全日制硕士。我拥有一段项目经历和一段实习经验。在项目中，我注重打基础，通过优化和实现多个功能，学习了操作系统内核的文件系统、中断处理、进程调度、内存分配等模块。在实习中，我接触到了实际的程序化广告生产环境，负责了回调信息收集上报模块中某一个路由的实现。用到了mongo、redis、mysql、kafka和k8s等技术栈。由于我本科的大数">
+    <meta name="description" content="自我介绍：面试官您好 ，我叫蒋健君，是一名来自电子科技大学的全日制硕士。我拥有一段项目经历和一段实习经验。在项目中，我注重打基础，通过优化和实现多个功能，学习了操作系统内核的文件系统、中断处理、进程调度、内存分配等模块。在实习中，我接触到了实际的程序化广告生产环境，负责了回调信息收集上报模块中某一个路由的实现。用到了mongo、redis、mysql、kafka和k8s等技术栈。由于我本科的大数据">
 <meta property="og:type" content="article">
 <meta property="og:title" content="面试知识点整理">
 <meta property="og:url" content="http://example.com/2024/05/17/%E9%9D%A2%E8%AF%95%E7%9F%A5%E8%AF%86%E7%82%B9%E6%95%B4%E7%90%86/index.html">
 <meta property="og:site_name" content="Cygnus的博客">
-<meta property="og:description" content="自我介绍： 面试官您好 ，我叫蒋健君，是一名来自电子科技大学的全日制硕士。我拥有一段项目经历和一段实习经验。在项目中，我注重打基础，通过优化和实现多个功能，学习了操作系统内核的文件系统、中断处理、进程调度、内存分配等模块。在实习中，我接触到了实际的程序化广告生产环境，负责了回调信息收集上报模块中某一个路由的实现。用到了mongo、redis、mysql、kafka和k8s等技术栈。由于我本科的大数">
+<meta property="og:description" content="自我介绍：面试官您好 ，我叫蒋健君，是一名来自电子科技大学的全日制硕士。我拥有一段项目经历和一段实习经验。在项目中，我注重打基础，通过优化和实现多个功能，学习了操作系统内核的文件系统、中断处理、进程调度、内存分配等模块。在实习中，我接触到了实际的程序化广告生产环境，负责了回调信息收集上报模块中某一个路由的实现。用到了mongo、redis、mysql、kafka和k8s等技术栈。由于我本科的大数据">
 <meta property="og:locale" content="zh_CN">
 <meta property="article:published_time" content="2024-05-17T13:22:11.000Z">
 <meta property="article:modified_time" content="2024-05-28T12:21:44.396Z">
@@ -273,129 +273,119 @@
             
               <div class="markdown-body">
                 
-                <p>自我介绍： 面试官您好 ，我叫蒋健君，是一名来自电子科技大学的全日制硕士。我拥有一段项目经历和一段实习经验。在项目中，我注重打基础，通过优化和实现多个功能，学习了操作系统内核的文件系统、中断处理、进程调度、内存分配等模块。在实习中，我接触到了实际的程序化广告生产环境，负责了回调信息收集上报模块中某一个路由的实现。用到了mongo、redis、mysql、kafka和k8s等技术栈。由于我本科的大数据专业背景以及硕士接触了AIGC相关内容，因此有较广的知识面，在和产品对接时会具备一定的优势。以上就是我的个人情况，贵公司对我有很大的吸引力，希望贵公司能够给我这个工作机会，我有信心，也有决心做好这份工作。</p>
-<h2 id="操作系统">操作系统</h2>
-<p>（1）进程间通信方式有哪些？哪种最快？ 管道、命名管道、消息队列、共享内存、信号量、套接字、信号。 其中共享内存最快。</p>
-<p>（2）进程间的调度方法？ 调度方法有很多，例如我的项目中实现的操作系统调度方法是时间片轮转。除此之外还有，先来先服务，短作业优先，最高相应比优先（等待时间+要求的服务时间/要求的服务时间）。 其中linux使用完全公平调度，利用红黑树维护要调度的任务队列，key是虚拟时间，由实际运行时间 / 进程权重计算而来，每次linux会从红黑树左下角取得key最小的任务运行。因此nginx等组件可以通过提高权重在linux系统上获得CPU亲和，提高并发能力。</p>
-<h4 id="零拷贝技术">零拷贝技术</h4>
-<p>（1）讲一讲零拷贝技术？ 零拷贝技术是一种用来<strong>提高文件传输的性能</strong>的技术。它主要解决两个方面的问题： 第一是使用DMA和SG-DMA替代CPU来进行数据搬运。传统的文件传输是磁盘准备好数据后发送一个电信号到中断控制寄存器的引脚引发中断，CPU通过中断处理处理函数中一个字节一个字节的完成数据搬运，效率很低。而DMA技术则是帮助CPU进行磁盘数据搬运，完成后再向CPU发出通知。如果网卡支持SG-DMA，则从内核缓冲区到socket缓冲区的拷贝也可以不使用CPU。 第二是尽量减少数据在内核和用户空间之间的拷贝次数。由于内核空间和用户空间的隔离，用户想要发起一次网络请求，需要先通过read系统调用将数据从内核态拷贝到用户态的数组中，然后再通过write系统调用拷贝回内核态，封装为sk_buff执行网络模型的逻辑然后发送出去。这个过程涉及到了四次特权等级切换和两次数据拷贝，性能低下。因为文件传输的场景中，在用户态我们不需要对数据再加工，所以可以通过引入mmap建立用户空间和物理空间的映射关系，与内核共享一个缓冲区，减少一次从内核态到用户态的数据拷贝。</p>
-<h4 id="io多路复用">IO多路复用</h4>
-<p>（1）select/poll/epoll 这三种都是用来解决C10K问题的IO多路复用模型。 select将已连接的 Socket 都放到一个<strong>文件描述符集合</strong>中copy进内核，内核遍历这个大小有限的集合检查到就绪的Socket，就把整个集合拷贝回用户态，用户态遍历找到就绪的Socket进行处理。 poll 用动态数组取代 BitsMap，避免了文件描述符的个数限制 epoll的核心是红黑树+事件驱动机制。使用红黑树来维护文件描述符，使用链表记录就绪事件，当红黑树中的某个 socket 有事件发生时，通过<strong>回调函数</strong>内核会将其加入到就绪事件链表中。用户调用 <code>epoll_wait()</code> 函数时，内核会将就绪的事件copy到用户空间让用户处理。</p>
-<p>（2）具体说说epoll？ epoll是一个在linux上的IO多路复用模型，是用来解决C10K问题的利器。很多知名的组件例如redis、nginx，包括Go的net库都对它进行了封装。 epoll的核心是红黑树+事件驱动机制。使用红黑树来维护文件描述符，使用链表记录就绪事件，当红黑树中的某个 socket 有事件发生时，通过<strong>回调函数</strong>内核会将其加入到就绪事件链表中，用户调用epoll_wait()可以将就绪链表copy到用户态进行处理 epoll模型涉及到epoll_create，epoll_ctl，epoll_wait，epoll_event_callback四个核心函数和epitem，eventpoll两个核心数据结构。create函数创建一个eventpoll结构，并初始化。eventpoll包含了一个红黑树指针rbr和一个链表指针rdlist，这两个结构体内部的节点数据类型均为epitem，封装一个文件描述符的同时还添加了用户感兴趣的事件epoll_event。当用户调用epoll_ctl就创建一个epitem插入到红黑树中。当事件发生，例如客户端调用connect连入，内核根据对应的事件在红黑树中找到对应的epitem并加入到就绪链表。用户调用epoll_wait时，内核将就绪链表中的节点摘取下来，copy到用户态空间，用户开始执行业务逻辑。</p>
-<h4 id="负载均衡">负载均衡</h4>
-<p>（1）如何理解一致性hash？ 在高并发场景下，需要集群对外提供服务，这就涉及到负载均衡问题。一致性hash是一种用来解决负载均衡问题的算法。传统的hash算法不能适应当下环境的三高要求（高并发，高可扩、高性能），当机器的数量发生变化时，会导致映射关系改变，出现缓存失效和数据迁移问题。 一致性hash算法被提出用来解决这个问题。它通过将整个hash空间映射成一个环，将机器id映射在环上，将环分割成了多个区域。当请求来临时根据映射的区域来选择对应的机器。这样当存在扩容缩容时，数据迁移和缓存失效不会影响到集群的所有的机器。 该算法还可以继续优化，通过构造两层映射关系，<strong>不再将虚拟节点替代真实节点映射到哈希环上，再将虚拟节点映射到实际节点</strong>，可以避免机器负载不均匀的问题。</p>
-<h4 id="中断">中断</h4>
-<p>（1）讲一讲中断发生的过程？ 和下面差不多。</p>
-<p>（2）讲一讲系统调用发生的过程？ 系统调用是操作系统暴露给用户操作系统资源的接口。用户使用系统调用和使用其他函数的方式是一样的，有对应的声明和实现，但是它的实现并不是业务实现，而是包含在一个系统在编译时生成的.S汇编文件中，汇编代码将系统调用的名称统一为sys开头的字符串，并放入寄存器，随后调用ecall指令调整CPU特权等级，进入内核态，同时保存PC寄存器的值到spec寄存器，再将stvec寄存器的值加载到PC中，该寄存器中保存的是中断处理函数uservec的入口，该函数会从sscratch寄存器取出保存进程上下文的trapframe结构体指针，并保护现场，并取出trapframe结构体中内核栈指针，内核页表指针保存到对应的寄存器。随后的操作就是在内核中进行了。 中断处理函数根据scause寄存器中的值来判断发生中断的类型，该寄存器的值是可以通过不同的中断场景利用电信号操作寄存器引脚进行修改。利用if else语句根据不同的值，采取不同的处理逻辑。由于是系统调用，会跳转到系统调用专用的函数，正式开始系统调用的业务逻辑。 通过从寄存器中取出对应的系统调用名称，映射为系统调用号，再利用系统调用号映射到对应的系统调用函数，系统调用函数再通过寄存器取出需要的参数，执行具体的业务逻辑，随后调用中断处理函数返回到用户态。也就是将刚刚的动作反过来执行一遍，设置各种寄存器的值，最后通过ret将之前保存再sepc寄存器中的值重置回PC，完成跳转</p>
-<h4 id="锁">锁</h4>
-<p>（1）讲一讲操作系统中的锁</p>
-<h3 id="计算机网络">计算机网络</h3>
-<h3 id="http">Http</h3>
-<p>（1）页面自动刷新是如何实现的？ 利用websocket协议，服务器可以主动向客户端推送信息，如果页面有新数据就可以主动推送给客户端，客户端页面完成刷新，它适用于<strong>需要服务器和客户端（浏览器）频繁交互</strong>的大部分场景，比如网页/小程序游戏，网页聊天室，以及一些类似飞书这样的网页协同办公软件</p>
-<p>一般来说浏览器在 <strong>TCP 三次握手</strong>建立连接之后，都<strong>统一使用 HTTP 协议</strong>先进行一次通信，如果此时是<strong>普通的 HTTP 请求</strong>，那后续双方就还是老样子继续用普通 HTTP 协议进行交互，<strong>想建立 WebSocket 连接</strong>，就会在 HTTP 请求里带上一些<strong>特殊的header 头</strong>表示想升级成websocket协议。http101状态码表示协议切换</p>
-<p>（2）http如何设置长连接 在客户端和服务端的header添加添加connect：<strong>Keep-Alive</strong>，当一次http请求完成后不会关闭TCP链接。长连接可以避免不必要的TCP握手和挥手过程，提高性能，带来<strong>更好的用户体验</strong></p>
-<p>（3）状态码 <a target="_blank" rel="noopener" href="https://xiaolincoding.com/network/2_http/http_interview.html#http-%E5%B8%B8%E8%A7%81%E7%9A%84%E7%8A%B6%E6%80%81%E7%A0%81%E6%9C%89%E5%93%AA%E4%BA%9B">3.1 HTTP 常见面试题 | 小林coding (xiaolincoding.com)</a></p>
-<p>（4）Get和post的区别？ <strong>GET 的语义是从服务器获取指定的资源</strong>，安全（不会破坏服务器资源）幂等（多次执行结果相同） <strong>POST 的语义是根据请求负荷（报文body）对指定的资源做出处理</strong>，不安全不幂等</p>
-<p>（5）http1.1的特点？ 无状态，有关联性的操作时会非常麻烦，引入cookie解决 <strong>明文传输</strong>，不安全，添加TLS变为https <strong>长连接</strong>，减少了 TCP 连接的重复建立和断开所造成的额外开销 <strong>队头阻塞</strong>，顺序发送的请求序列中的请求被阻塞时，在后面排队的所有请求也一同被阻塞</p>
-<p>头部冗余，请求 / 响应头部（Header）未经压缩就发送，只能压缩 Body的部分 不存在客户端主动推送</p>
-<p>（6）https的特点？ HTTP<strong>S</strong> 在 HTTP 与 TCP 层之间加入了 <code>SSL/TLS</code> 协议，解决窃听风险（<strong>混合加密</strong>）、篡改风险（<strong>摘要算法</strong>）、冒充风险（<strong>数字证书</strong>）。</p>
-<p>（7）TLS四次握手？ 第一次握手： 客户端指定TLS版本，支持的密码套件、随机数a 第二次握手： 服务端确认TLS版本，密码类型（rsa）、随机数b 数字证书 第三握手： 生成随机数c，利用abc三个随机数生成对称密钥 客户端校验数字证书，取出公钥加密对称密钥并发送出去 通知改用对称密钥（对称密钥加密） 发送握手数据的摘要（对称密钥加密） 第四握手： 通知改用对称密钥（对称密钥加密） 发送握手数据的摘要（对称密钥加密）</p>
-<p>（8）数字证书如何签发和校验？ CA计算持有者的公钥、用途、颁发者、有效时间等信息的hash值，用私钥加密形成证书 客户端会使用同样的 Hash 算法获取证书的 Hash 值，用公钥解密比对判断是否正确</p>
-<p>（9）证书信任链的问题？ 客户端收到证书后，发现这个证书的签发者不是根证书，于是向上申请一直到根证书，利用根证书中的公钥去验证当前证书的签发者的证书，如果可信，就能用它的公钥再去验证当前证书</p>
-<p>（10）http2.0？ 头部压缩：将头部信息和body信息压缩为二进制帧 静态表，高频key进行哈夫曼编码传输 动态表，不在静态表中的字段先用哈夫曼编码传输，然后在静态表后面添加该key，下次就不需要传输字段了，传输编码即可 二进制传输： 无需再将明文的报文转成二进制，而是直接解析二进制报文，增加了数据传输的效率 并发传输（解决队头阻塞） 引出了 Stream 概念，多个 Stream 复用在一条 TCP 连接，<strong>针对不同的 HTTP 请求用独一无二的 Stream ID 来区分</strong>，<strong>接收端可以通过 Stream ID 有序组装成 HTTP 消息，不同 Stream 的帧是可以乱序发送的</strong> 服务器主动推送： 客户端和服务器<strong>双方都可以建立 Stream</strong>， Stream ID 也是有区别的，客户端建立的 Stream 必须是奇数号，而服务器建立的 Stream 必须是偶数号</p>
+                <p>自我介绍：<br>面试官您好 ，我叫蒋健君，是一名来自电子科技大学的全日制硕士。我拥有一段项目经历和一段实习经验。在项目中，我注重打基础，通过优化和实现多个功能，学习了操作系统内核的文件系统、中断处理、进程调度、内存分配等模块。在实习中，我接触到了实际的程序化广告生产环境，负责了回调信息收集上报模块中某一个路由的实现。用到了mongo、redis、mysql、kafka和k8s等技术栈。由于我本科的大数据专业背景以及硕士接触了AIGC相关内容，因此有较广的知识面，在和产品对接时会具备一定的优势。以上就是我的个人情况，贵公司对我有很大的吸引力，希望贵公司能够给我这个工作机会，我有信心，也有决心做好这份工作。</p>
+<h2 id="操作系统"><a href="#操作系统" class="headerlink" title="操作系统"></a>操作系统</h2><p>（1）进程间通信方式有哪些？哪种最快？<br>管道、命名管道、消息队列、共享内存、信号量、套接字、信号。<br>其中共享内存最快。</p>
+<p>（2）进程间的调度方法？<br>调度方法有很多，例如我的项目中实现的操作系统调度方法是时间片轮转。除此之外还有，先来先服务，短作业优先，最高相应比优先（等待时间+要求的服务时间/要求的服务时间）。<br>其中linux使用完全公平调度，利用红黑树维护要调度的任务队列，key是虚拟时间，由实际运行时间 / 进程权重计算而来，每次linux会从红黑树左下角取得key最小的任务运行。因此nginx等组件可以通过提高权重在linux系统上获得CPU亲和，提高并发能力。</p>
+<h4 id="零拷贝技术"><a href="#零拷贝技术" class="headerlink" title="零拷贝技术"></a>零拷贝技术</h4><p>（1）讲一讲零拷贝技术？<br>零拷贝技术是一种用来<strong>提高文件传输的性能</strong>的技术。它主要解决两个方面的问题：<br>第一是使用DMA和SG-DMA替代CPU来进行数据搬运。传统的文件传输是磁盘准备好数据后发送一个电信号到中断控制寄存器的引脚引发中断，CPU通过中断处理处理函数中一个字节一个字节的完成数据搬运，效率很低。而DMA技术则是帮助CPU进行磁盘数据搬运，完成后再向CPU发出通知。如果网卡支持SG-DMA，则从内核缓冲区到socket缓冲区的拷贝也可以不使用CPU。<br>第二是尽量减少数据在内核和用户空间之间的拷贝次数。由于内核空间和用户空间的隔离，用户想要发起一次网络请求，需要先通过read系统调用将数据从内核态拷贝到用户态的数组中，然后再通过write系统调用拷贝回内核态，封装为sk_buff执行网络模型的逻辑然后发送出去。这个过程涉及到了四次特权等级切换和两次数据拷贝，性能低下。因为文件传输的场景中，在用户态我们不需要对数据再加工，所以可以通过引入mmap建立用户空间和物理空间的映射关系，与内核共享一个缓冲区，减少一次从内核态到用户态的数据拷贝。</p>
+<h4 id="IO多路复用"><a href="#IO多路复用" class="headerlink" title="IO多路复用"></a>IO多路复用</h4><p>（1）select/poll/epoll<br>这三种都是用来解决C10K问题的IO多路复用模型。<br>select将已连接的 Socket 都放到一个<strong>文件描述符集合</strong>中copy进内核，内核遍历这个大小有限的集合检查到就绪的Socket，就把整个集合拷贝回用户态，用户态遍历找到就绪的Socket进行处理。<br>poll 用动态数组取代 BitsMap，避免了文件描述符的个数限制<br>epoll的核心是红黑树+事件驱动机制。使用红黑树来维护文件描述符，使用链表记录就绪事件，当红黑树中的某个 socket 有事件发生时，通过<strong>回调函数</strong>内核会将其加入到就绪事件链表中。用户调用 <code>epoll_wait()</code> 函数时，内核会将就绪的事件copy到用户空间让用户处理。</p>
+<p>（2）具体说说epoll？<br>epoll是一个在linux上的IO多路复用模型，是用来解决C10K问题的利器。很多知名的组件例如redis、nginx，包括Go的net库都对它进行了封装。<br>epoll的核心是红黑树+事件驱动机制。使用红黑树来维护文件描述符，使用链表记录就绪事件，当红黑树中的某个 socket 有事件发生时，通过<strong>回调函数</strong>内核会将其加入到就绪事件链表中，用户调用epoll_wait()可以将就绪链表copy到用户态进行处理<br>epoll模型涉及到epoll_create，epoll_ctl，epoll_wait，epoll_event_callback四个核心函数和epitem，eventpoll两个核心数据结构。create函数创建一个eventpoll结构，并初始化。eventpoll包含了一个红黑树指针rbr和一个链表指针rdlist，这两个结构体内部的节点数据类型均为epitem，封装一个文件描述符的同时还添加了用户感兴趣的事件epoll_event。当用户调用epoll_ctl就创建一个epitem插入到红黑树中。当事件发生，例如客户端调用connect连入，内核根据对应的事件在红黑树中找到对应的epitem并加入到就绪链表。用户调用epoll_wait时，内核将就绪链表中的节点摘取下来，copy到用户态空间，用户开始执行业务逻辑。</p>
+<h4 id="负载均衡"><a href="#负载均衡" class="headerlink" title="负载均衡"></a>负载均衡</h4><p>（1）如何理解一致性hash？<br>在高并发场景下，需要集群对外提供服务，这就涉及到负载均衡问题。一致性hash是一种用来解决负载均衡问题的算法。传统的hash算法不能适应当下环境的三高要求（高并发，高可扩、高性能），当机器的数量发生变化时，会导致映射关系改变，出现缓存失效和数据迁移问题。<br>一致性hash算法被提出用来解决这个问题。它通过将整个hash空间映射成一个环，将机器id映射在环上，将环分割成了多个区域。当请求来临时根据映射的区域来选择对应的机器。这样当存在扩容缩容时，数据迁移和缓存失效不会影响到集群的所有的机器。<br>该算法还可以继续优化，通过构造两层映射关系，<strong>不再将虚拟节点替代真实节点映射到哈希环上，再将虚拟节点映射到实际节点</strong>，可以避免机器负载不均匀的问题。</p>
+<h4 id="中断"><a href="#中断" class="headerlink" title="中断"></a>中断</h4><p>（1）讲一讲中断发生的过程？<br>和下面差不多。</p>
+<p>（2）讲一讲系统调用发生的过程？<br>系统调用是操作系统暴露给用户操作系统资源的接口。用户使用系统调用和使用其他函数的方式是一样的，有对应的声明和实现，但是它的实现并不是业务实现，而是包含在一个系统在编译时生成的.S汇编文件中，汇编代码将系统调用的名称统一为sys开头的字符串，并放入寄存器，随后调用ecall指令调整CPU特权等级，进入内核态，同时保存PC寄存器的值到spec寄存器，再将stvec寄存器的值加载到PC中，该寄存器中保存的是中断处理函数uservec的入口，该函数会从sscratch寄存器取出保存进程上下文的trapframe结构体指针，并保护现场，并取出trapframe结构体中内核栈指针，内核页表指针保存到对应的寄存器。随后的操作就是在内核中进行了。<br>中断处理函数根据scause寄存器中的值来判断发生中断的类型，该寄存器的值是可以通过不同的中断场景利用电信号操作寄存器引脚进行修改。利用if else语句根据不同的值，采取不同的处理逻辑。由于是系统调用，会跳转到系统调用专用的函数，正式开始系统调用的业务逻辑。<br>通过从寄存器中取出对应的系统调用名称，映射为系统调用号，再利用系统调用号映射到对应的系统调用函数，系统调用函数再通过寄存器取出需要的参数，执行具体的业务逻辑，随后调用中断处理函数返回到用户态。也就是将刚刚的动作反过来执行一遍，设置各种寄存器的值，最后通过ret将之前保存再sepc寄存器中的值重置回PC，完成跳转</p>
+<h4 id="锁"><a href="#锁" class="headerlink" title="锁"></a>锁</h4><p>（1）讲一讲操作系统中的锁</p>
+<h3 id="计算机网络"><a href="#计算机网络" class="headerlink" title="计算机网络"></a>计算机网络</h3><h3 id="Http"><a href="#Http" class="headerlink" title="Http"></a>Http</h3><p>（1）页面自动刷新是如何实现的？<br>利用websocket协议，服务器可以主动向客户端推送信息，如果页面有新数据就可以主动推送给客户端，客户端页面完成刷新，它适用于<strong>需要服务器和客户端（浏览器）频繁交互</strong>的大部分场景，比如网页/小程序游戏，网页聊天室，以及一些类似飞书这样的网页协同办公软件</p>
+<p>一般来说浏览器在 <strong>TCP 三次握手</strong>建立连接之后，都<strong>统一使用 HTTP 协议</strong>先进行一次通信，如果此时是<strong>普通的 HTTP 请求</strong>，那后续双方就还是老样子继续用普通 HTTP 协议进行交互，<strong>想建立 WebSocket 连接</strong>，就会在 HTTP 请求里带上一些<strong>特殊的header 头</strong>表示想升级成websocket协议。http101状态码表示协议切换</p>
+<p>（2）http如何设置长连接<br>在客户端和服务端的header添加添加connect：<strong>Keep-Alive</strong>，当一次http请求完成后不会关闭TCP链接。长连接可以避免不必要的TCP握手和挥手过程，提高性能，带来<strong>更好的用户体验</strong></p>
+<p>（3）状态码<br>    <a target="_blank" rel="noopener" href="https://xiaolincoding.com/network/2_http/http_interview.html#http-%E5%B8%B8%E8%A7%81%E7%9A%84%E7%8A%B6%E6%80%81%E7%A0%81%E6%9C%89%E5%93%AA%E4%BA%9B">3.1 HTTP 常见面试题 | 小林coding (xiaolincoding.com)</a></p>
+<p>（4）Get和post的区别？<br><strong>GET 的语义是从服务器获取指定的资源</strong>，安全（不会破坏服务器资源）幂等（多次执行结果相同）<br><strong>POST 的语义是根据请求负荷（报文body）对指定的资源做出处理</strong>，不安全不幂等</p>
+<p>（5）http1.1的特点？<br>无状态，有关联性的操作时会非常麻烦，引入cookie解决<br><strong>明文传输</strong>，不安全，添加TLS变为https<br><strong>长连接</strong>，减少了 TCP 连接的重复建立和断开所造成的额外开销<br><strong>队头阻塞</strong>，顺序发送的请求序列中的请求被阻塞时，在后面排队的所有请求也一同被阻塞</p>
+<p>头部冗余，请求 / 响应头部（Header）未经压缩就发送，只能压缩 Body的部分<br>不存在客户端主动推送</p>
+<p>（6）https的特点？<br>HTTP<strong>S</strong> 在 HTTP 与 TCP 层之间加入了 <code>SSL/TLS</code> 协议，解决窃听风险（<strong>混合加密</strong>）、篡改风险（<strong>摘要算法</strong>）、冒充风险（<strong>数字证书</strong>）。</p>
+<p>（7）TLS四次握手？<br>第一次握手：<br>    客户端指定TLS版本，支持的密码套件、随机数a<br>第二次握手：<br>    服务端确认TLS版本，密码类型（rsa）、随机数b<br>    数字证书<br>第三握手：<br>    生成随机数c，利用abc三个随机数生成对称密钥<br>    客户端校验数字证书，取出公钥加密对称密钥并发送出去<br>    通知改用对称密钥（对称密钥加密）<br>    发送握手数据的摘要（对称密钥加密）<br>第四握手：<br>    通知改用对称密钥（对称密钥加密）<br>    发送握手数据的摘要（对称密钥加密）</p>
+<p>（8）数字证书如何签发和校验？<br>CA计算持有者的公钥、用途、颁发者、有效时间等信息的hash值，用私钥加密形成证书<br>客户端会使用同样的 Hash 算法获取证书的 Hash 值，用公钥解密比对判断是否正确</p>
+<p>（9）证书信任链的问题？<br>客户端收到证书后，发现这个证书的签发者不是根证书，于是向上申请一直到根证书，利用根证书中的公钥去验证当前证书的签发者的证书，如果可信，就能用它的公钥再去验证当前证书</p>
+<p>（10）http2.0？<br>头部压缩：将头部信息和body信息压缩为二进制帧<br>    静态表，高频key进行哈夫曼编码传输<br>    动态表，不在静态表中的字段先用哈夫曼编码传输，然后在静态表后面添加该key，下次就不需要传输字段了，传输编码即可<br>二进制传输：<br>    无需再将明文的报文转成二进制，而是直接解析二进制报文，增加了数据传输的效率<br>并发传输（解决队头阻塞）<br>    引出了 Stream 概念，多个 Stream 复用在一条 TCP 连接，<strong>针对不同的 HTTP 请求用独一无二的 Stream ID 来区分</strong>，<strong>接收端可以通过 Stream ID 有序组装成 HTTP 消息，不同 Stream 的帧是可以乱序发送的</strong><br>服务器主动推送：<br>    客户端和服务器<strong>双方都可以建立 Stream</strong>， Stream ID 也是有区别的，客户端建立的 Stream 必须是奇数号，而服务器建立的 Stream 必须是偶数号</p>
 <p>缺陷：基于 TCP 协议，存在传输层层面的队头阻塞</p>
-<p>（11）http3.0？ 把 HTTP 下层的 TCP 协议改成了 UDP，基于UDP实现QUIC。 无队头阻塞： <strong>当某个流丢包时只会阻塞这个流，其他流不会受到影响，因此不存在队头阻塞问题</strong> 更快的连接建立： TCP 和 TLS 是分层的，分别属于内核传输层和用户态应用层，QUIC 内部包含了 TLS，在QUIC三次握手中完成TLS握手 连接迁移： TCP连接当IP发送变化，导致四元组发生变化，原本的连接失效，要重新建立连接，带来卡顿 QUIC 协议没有用四元组的方式来“绑定”连接，而是使用连接ID来标记通信的两个端点，即使移动设备的网络变化后，导致 IP 地址变化了，但只要ID没变，则复用连接，不需要重新建立连接</p>
-<h3 id="tcp">TCP</h3>
-<p>（1）什么是 TCP 延迟确认机制？ - 当有响应数据要发送时，ACK 会随着响应数据一起立刻发送给对方 - 当没有响应数据要发送时，ACK 将会延迟一段时间，以等待是否有响应数据可以一起发送 - 如果在延迟等待发送 ACK 期间，对方的第二个数据报文又到达了，这时就会立刻发送 ACK</p>
-<p>（2）TCP粘包如何处理？ 交给应用层处理</p>
-<p>（3）TCP重传、滑动窗口、拥塞控制 - 超时重传 + 快速重传 + SACK + D-SACK - 流量控制是利用接收方的可用窗口大小来控制的，<strong>避免「发送方」的数据填满接收方缓冲区</strong> - 拥塞窗口是<strong>避免「发送方」的数据填满整个网络</strong>，<strong>发生了超时重传，就会认为网络出现了拥塞。</strong> 慢启动：<strong>当发送方每收到一个 ACK，拥塞窗口 cwnd 的大小就会加 1</strong>，有一个阈值 进入拥塞避免算法后，它的规则是：<strong>每当收到一个 ACK 时，cwnd 增加 1/cwnd</strong> 当发生了「超时重传」，则就会使用拥塞发生算法，阈值变为当前窗口的1/2，窗口变为1 快恢复：收到 3 个重复 ACK 说明网络也不那么糟糕，阈值恢复，窗口变为原来的一半</p>
-<h2 id="redis">Redis</h2>
-<p>（1）如何保证数据库和缓存一致性？ 有两种方案，延迟双删、异步信息+可靠信息删除 前者先删缓存，然而更新数据库，过几秒再删除缓存 后者是大厂使用的方案，更新数据库后不做操作，由其他组件监听binlog日志，推送到消息队列，redis订阅该topic，执行更新操作，更新失败可以重试。</p>
-<p>（2）如何优化redis？例如内存占用等 如果发现redis处理请求变慢，可以查询慢查询日志获得原因。 内存占用层面： 避免使用bigkey、会导致内存分配消耗的时间大；开启lazy-free或者固定过期时间+随机过期时间，避免集中删除带来较大的开销；通过添加新实例等，避免达到内存上限，否则Redis 必须先从实例中踢出一部分数据，让整个实例的内存维持在 maxmemory 之下，然后才能把新数据写进来； 磁盘IO占用层面： 避免全量复制、避免较多的slave，会导致频繁调用fork阻塞redis主进程；避免频繁的AOF刷盘，如果AOF rewrite和AOF 刷盘同时进行，导致磁盘IO高，系统调用迟迟不能返回，阻塞主进程；出现了大面积Swap，把一部分内存中的数据换到磁盘上，导致整个Redis性能下降。</p>
-<p>（3）Redis出现的各种情况 指令周期性变慢： 集中删除带来较大的开销，启动lazy-free + 随机时间解决 部分指令很慢： 查询慢查询日志，可能是bigkey或者使用了时间复杂度高的命令 突然开始变慢，没有自动恢复： 实例的内存占用逼近 maxmemory ，导致必须先删除数据再写入数据 出现了大面积Swap，把一部分内存中的数据换到磁盘上，导致整个Redis性能下降 突然变慢，但自动恢复了： 触发全量复制，fork导致redis阻塞 AOF rewrite和AOF刷盘同时进行导致磁盘IO高，系统调用迟迟不能返回导致阻塞</p>
-<p>（4）使用了redis集群嘛？有哪些模式？ Redis集群有<strong>主从复制、哨兵模式和Cluster模式</strong> 主从复制：不具备自动容错和恢复功能，配置简单，较难支持在线扩容 哨兵模式： 哨兵模式是基于主从模式的，实现matser崩溃时主从自动切换，具有一定的容灾能力，难以支持在线扩容 集群模式： Redis 集群没有使用一致性 hash，而是引入了哈希槽【hash slot】的概念 所有的 redis 节点彼此互联(PING-PONG机制)，内部使用二进制协议优化传输速度和带宽 具有容灾能力</p>
+<p>（11）http3.0？<br>把 HTTP 下层的 TCP 协议改成了 UDP，基于UDP实现QUIC。<br>无队头阻塞：<br>    <strong>当某个流丢包时只会阻塞这个流，其他流不会受到影响，因此不存在队头阻塞问题</strong><br>更快的连接建立：<br>    TCP 和 TLS 是分层的，分别属于内核传输层和用户态应用层，QUIC 内部包含了 TLS，在QUIC三次握手中完成TLS握手<br>连接迁移：<br>    TCP连接当IP发送变化，导致四元组发生变化，原本的连接失效，要重新建立连接，带来卡顿<br>    QUIC 协议没有用四元组的方式来“绑定”连接，而是使用连接ID来标记通信的两个端点，即使移动设备的网络变化后，导致 IP 地址变化了，但只要ID没变，则复用连接，不需要重新建立连接</p>
+<h3 id="TCP"><a href="#TCP" class="headerlink" title="TCP"></a>TCP</h3><p>（1）什么是 TCP 延迟确认机制？</p>
+<ul>
+<li>当有响应数据要发送时，ACK 会随着响应数据一起立刻发送给对方</li>
+<li>当没有响应数据要发送时，ACK 将会延迟一段时间，以等待是否有响应数据可以一起发送</li>
+<li>如果在延迟等待发送 ACK 期间，对方的第二个数据报文又到达了，这时就会立刻发送 ACK</li>
+</ul>
+<p>（2）TCP粘包如何处理？<br>交给应用层处理</p>
+<p>（3）TCP重传、滑动窗口、拥塞控制</p>
+<ul>
+<li>超时重传 + 快速重传 + SACK + D-SACK</li>
+<li>流量控制是利用接收方的可用窗口大小来控制的，<strong>避免「发送方」的数据填满接收方缓冲区</strong></li>
+<li>拥塞窗口是<strong>避免「发送方」的数据填满整个网络</strong>，<strong>发生了超时重传，就会认为网络出现了拥塞。</strong><br>  慢启动：<strong>当发送方每收到一个 ACK，拥塞窗口 cwnd 的大小就会加 1</strong>，有一个阈值<br>  进入拥塞避免算法后，它的规则是：<strong>每当收到一个 ACK 时，cwnd 增加 1/cwnd</strong><br>  当发生了「超时重传」，则就会使用拥塞发生算法，阈值变为当前窗口的1/2，窗口变为1<br>  快恢复：收到 3 个重复 ACK 说明网络也不那么糟糕，阈值恢复，窗口变为原来的一半</li>
+</ul>
+<h2 id="Redis"><a href="#Redis" class="headerlink" title="Redis"></a>Redis</h2><p>（1）如何保证数据库和缓存一致性？<br>有两种方案，延迟双删、异步信息+可靠信息删除<br>前者先删缓存，然而更新数据库，过几秒再删除缓存<br>后者是大厂使用的方案，更新数据库后不做操作，由其他组件监听binlog日志，推送到消息队列，redis订阅该topic，执行更新操作，更新失败可以重试。</p>
+<p>（2）如何优化redis？例如内存占用等<br>如果发现redis处理请求变慢，可以查询慢查询日志获得原因。<br>内存占用层面：<br>    避免使用bigkey、会导致内存分配消耗的时间大；开启lazy-free或者固定过期时间+随机过期时间，避免集中删除带来较大的开销；通过添加新实例等，避免达到内存上限，否则Redis 必须先从实例中踢出一部分数据，让整个实例的内存维持在 maxmemory 之下，然后才能把新数据写进来；<br>磁盘IO占用层面：<br>    避免全量复制、避免较多的slave，会导致频繁调用fork阻塞redis主进程；避免频繁的AOF刷盘，如果AOF rewrite和AOF 刷盘同时进行，导致磁盘IO高，系统调用迟迟不能返回，阻塞主进程；出现了大面积Swap，把一部分内存中的数据换到磁盘上，导致整个Redis性能下降。</p>
+<p>（3）Redis出现的各种情况<br>指令周期性变慢：<br>    集中删除带来较大的开销，启动lazy-free + 随机时间解决<br>部分指令很慢：<br>    查询慢查询日志，可能是bigkey或者使用了时间复杂度高的命令<br>突然开始变慢，没有自动恢复：<br>    实例的内存占用逼近 maxmemory ，导致必须先删除数据再写入数据<br>    出现了大面积Swap，把一部分内存中的数据换到磁盘上，导致整个Redis性能下降<br>突然变慢，但自动恢复了：<br>    触发全量复制，fork导致redis阻塞<br>    AOF rewrite和AOF刷盘同时进行导致磁盘IO高，系统调用迟迟不能返回导致阻塞</p>
+<p>（4）使用了redis集群嘛？有哪些模式？<br>Redis集群有<strong>主从复制、哨兵模式和Cluster模式</strong><br>主从复制：不具备自动容错和恢复功能，配置简单，较难支持在线扩容<br>哨兵模式：<br>    哨兵模式是基于主从模式的，实现matser崩溃时主从自动切换，具有一定的容灾能力，难以支持在线扩容<br>集群模式：<br>    Redis 集群没有使用一致性 hash，而是引入了哈希槽【hash slot】的概念<br>    所有的 redis 节点彼此互联(PING-PONG机制)，内部使用二进制协议优化传输速度和带宽<br>    具有容灾能力</p>
 <p>（5）如何实现高可用？</p>
-<h3 id="mysql">MySQL</h3>
-<p>（1）数据加密后如何模糊查询？ 方案一：使用数据库加解密函数先解密再模糊查找，缺点在于无法利用数据库的索引来优化查询 方案二：新建一张分词密文映射表，对敏感字段进行分词组合，如“15503770537”的分词组合有“155”、“0377”、“0537”等，再对每个分词进行加密，建立起敏感字段的分词密文与目标数据行主键的关联关系；在处理模糊查询的时候，对模糊查询关键字进行加密，用加密后的模糊查询关键字，对分词密文映射表进行like查询，得到目标数据行的主键，再以目标数据行的主键为条件返回目标表进行精确查询</p>
-<p>（2）truncate drop delete的区别 drop会删除整个表以及结构、索引和触发器 truncate只是删除数据，保留表结构，重置自增列为1 delete只是删除数据，保留表结构，可以添加where条件，支持回滚和恢复。</p>
-<p>（3）如何实现分库分表？比如2000w条订单数据？ 雪花算法生成分布式ID + 使用hash讲id分到100个分库和100个表</p>
-<p>（4）mysql的不同引擎的区别？ MyISAM不支持事务、只有表锁没有行锁。InnoDB 支持在线热备份</p>
-<p>（5）Mysql如何进行性能优化？ 尽量使用索引，利用explain看是否使用了索引，最左匹配原则 优化数据访问方式，例如避免select * ，多使用limit，使用覆盖索引避免回表 重构查询方式，例如切分大查询（定期删除任务）、分解联合查询（带来更高的缓存利用率）</p>
-<p>（6）MySQL如何进行主从复制？ binlog线程：主服务器的binlog会将写操作记录下来形成binlog IO线程：从服务器的IO线程从主服务器读取日志，并写入从服务器的中继日志 SQL线程：读取从武器的中继日志并重放SQL语句</p>
-<p>（7）MySQL建立索引的原则 <strong>最左匹配原则</strong>：mysql会一直向右匹配直到遇到范围查询(<code>&gt;</code>、<code>&lt;</code>、<code>between</code>、<code>like</code>)就停止匹配。比如<code>a = 1 and b = 2 and c &gt; 3 and d = 4</code> 如果建立(a,b,c,d)顺序的索引，d是用不到索引的，如果建立(a,b,d,c)的索引则都可以用到 <strong>选择区分度高的列作为索引</strong>，区分度的公式是<code>count(distinct col)/count(*)</code>，表示字段不重复的比例，比例越大我们扫描的记录数越少‘ <strong>索引列不能参与计算</strong>。比如<code>from_unixtime(create_time) = ’2014-05-29’</code>就不能使用到索引，原因很简单，b+树中存的都是数据表中的字段值，但进行检索时，需要把所有元素都应用函数才能比较，显然成本太大。所以语句应该写成create_time = unix_timestamp(’2014-05-29’)</p>
-<h2 id="kafka">Kafka</h2>
-<p>（1）如何获取topic列表？ bin/kafka-topics.sh --list --zookeeper localhost:2181</p>
-<p>（2）Zookeeper 对于 Kafka 的作用是什么？ Zookeeper是一个分布式协调服务，用于集群中不同节点的通信。 在kafka中，它被用于提交偏移量， leader 检测、分布式同步、配置管理等</p>
-<p>（3）数据传输的事务定义为哪三种？ 和 MQTT 的事务定义一样都是 3 种。<br>
-最多一次: 消息不会被重复发送，最多被传输一次，但也有可能一次不传输<br>
-最少一次: 消息不会被漏发送，最少被传输一次，但也有可能被重复传输.<br>
-精确的一次（Exactly once）: 不会漏传输也不会重复传输,每个消息都传输被一次而且仅仅被传输一次，这是大家所期望的</p>
-<p>（4） Kafka 如何判断一个节点是否还活着 Zookeeper心跳检测</p>
-<p>（5）为什么使用kafka而不是MQ？ Kafka 持久化日志，这些日志可以被重复读取和无限期保留<br>
-Kafka 是一个分布式系统：它以集群的方式运行，可以灵活伸缩，在内部通过复制数据提升容错能力和高可用性<br>
-Kafka 支持实时的流式处理 Kafka总的来说有极致的性能和良好的生态（例如hadoop，流处理系统等）。</p>
-<p>（6）Kafka的ack的三种机制？ request.required.acks 有三个值 0 1 -1 0表示生产者不会等待 broker 的 ack，这个延迟最低但是存储的保证最弱 1表示服务端会等待 ack 值 leader 副本确认接收到消息后发送 ack -1(all)表示服务端会等所有的 follower 的副本受到数据后才会受到 leader 发出的ack，这样数据不会丢失</p>
-<p>（7）为什么用kafka？给我讲一讲kafka的结构 用处是：异步处理、上下游业务解耦、削峰 kafka实现了一个发布订阅模型。一个kafka集群由多个broker组成，每个broker内部有多个topic表示主题，消费者可以订阅主题，消费队列中的消息。每个主题可以分为多个partion分区，分区内部的消息是按顺序的。每个分区都有对应的副本，leader用于平时工作，但是其他follower需要及时从leader获取备份，当leader下线时，需要选举出一个follower变为leader。</p>
-<p>（8）kafka如何保证消息不丢失？ 生产者丢数据： 通过send+回调的形式，接收send的结果，如果返回错误则重试（默认3次）。 消费者丢数据： 基于分区有序性的原理，可以<strong>关闭自动提交 offset，每次在真正消费完消息之后再自己手动提交 offset</strong>（但是可能导致重复消费，需要再通过数据库查询来消除） kafka丢数据： 通过副本来实现高可靠。kafka有一个参数可以设置有多少副本同步更新了数据才算成功发送，一般至少&gt;= 2，这样即使leader挂了，follew仍然还保存着副本</p>
-<p>（9）kafka如何保证消费顺序的？ 如果要求Topic内有序，那么一个Topic只用一个分区 如果只要求业务处理的顺序有序，那么可以建立key到分区的映射关系，保证相同的key映射到同一个分区。（因为Kafka 中发送 1 条消息的时候，可以指定 topic, partition, key,data（数据） 4 个参数。如果你发送消息的时候指定了 Partition 的话，所有消息都会被发送到指定的 Partition） <figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs sql">追问：分区内部的有序是如何实现的？<br>答案：消息在被追加到 <span class="hljs-keyword">Partition</span>(分区)的时候都会分配一个特定的偏移量（<span class="hljs-keyword">offset</span>）。偏移量（<span class="hljs-keyword">offset</span>)表示 Consumer 当前消费到的 <span class="hljs-keyword">Partition</span>(分区)的所在的位置。Kafka 通过偏移量（<span class="hljs-keyword">offset</span>）可以保证消息在分区内的顺序性<br></code></pre></td></tr></table></figure></p>
-<p>（10）kafka如何防止重复消费？ 根本原因：服务端侧已经消费的数据没有成功提交 offset（根本原因） 解决方法： 消费消息服务做幂等校验，比如 Redis 的 set、MySQL 的主键等天然的幂等功能。这种方法最有效。 关闭自动提交，开发者在代码中手动提交 offset。当拉取到消息后再提交，但仍有消息丢失的风险，还需要通过定时任务在业务不繁忙（比如凌晨）的时候做数据兜底 下游在进行特定处理之后保存到mongo，然后提交offset。每次处理数据前先查询mongo是否命中。 <figure class="highlight"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs">追问：什么是消息幂等？<br>答案：当出现消费者对某条消息重复消费的情况时，重复消费的结果与消费一次的结果是相同的，并且多次消费并未对业务系统产生任何负面影响<br><br>追问：如何保证幂等？<br>答案：需要结合业务考虑，比如去重表来实现<br></code></pre></td></tr></table></figure></p>
-<p>（11）当出现消费异常时怎么办？ 在默认配置下，当消费异常会进行重试，重试多次后会跳过当前消息，继续进行后续消息的消费，并将有问题的数据放入死信队列，被开发者进一步分析处理。这个过程可以配置告警函数。</p>
-<p>（12）遇到过kafka消息堆积的情况嘛？怎么处理？ 因为生产者的问题导致消费不了，那么修改代码 因为Kafka的问题、部署集群、高可靠。 因为消费者的问题导致堆积：代码没问题，则下游扩容；代码有问题则修改代码，吞吐量太小了就扩展分区。 在修改代码时，为了防止业务出问题，需要新开一个topic来暂时保存消费不了的数据避免引起溢出。</p>
+<h3 id="MySQL"><a href="#MySQL" class="headerlink" title="MySQL"></a>MySQL</h3><p>（1）数据加密后如何模糊查询？<br>方案一：使用数据库加解密函数先解密再模糊查找，缺点在于无法利用数据库的索引来优化查询<br>方案二：新建一张分词密文映射表，对敏感字段进行分词组合，如“15503770537”的分词组合有“155”、“0377”、“0537”等，再对每个分词进行加密，建立起敏感字段的分词密文与目标数据行主键的关联关系；在处理模糊查询的时候，对模糊查询关键字进行加密，用加密后的模糊查询关键字，对分词密文映射表进行like查询，得到目标数据行的主键，再以目标数据行的主键为条件返回目标表进行精确查询</p>
+<p>（2）truncate drop delete的区别<br>drop会删除整个表以及结构、索引和触发器<br>truncate只是删除数据，保留表结构，重置自增列为1<br>delete只是删除数据，保留表结构，可以添加where条件，支持回滚和恢复。</p>
+<p>（3）如何实现分库分表？比如2000w条订单数据？<br>雪花算法生成分布式ID + 使用hash讲id分到100个分库和100个表</p>
+<p>（4）mysql的不同引擎的区别？<br>MyISAM不支持事务、只有表锁没有行锁。InnoDB 支持在线热备份</p>
+<p>（5）Mysql如何进行性能优化？<br>    尽量使用索引，利用explain看是否使用了索引，最左匹配原则<br>    优化数据访问方式，例如避免select * ，多使用limit，使用覆盖索引避免回表<br>    重构查询方式，例如切分大查询（定期删除任务）、分解联合查询（带来更高的缓存利用率）</p>
+<p>（6）MySQL如何进行主从复制？<br>binlog线程：主服务器的binlog会将写操作记录下来形成binlog<br>IO线程：从服务器的IO线程从主服务器读取日志，并写入从服务器的中继日志<br>SQL线程：读取从武器的中继日志并重放SQL语句</p>
+<p>（7）MySQL建立索引的原则<br>    <strong>最左匹配原则</strong>：mysql会一直向右匹配直到遇到范围查询(<code>&gt;</code>、<code>&lt;</code>、<code>between</code>、<code>like</code>)就停止匹配。比如<code>a = 1 and b = 2 and c &gt; 3 and d = 4</code> 如果建立(a,b,c,d)顺序的索引，d是用不到索引的，如果建立(a,b,d,c)的索引则都可以用到<br>    <strong>选择区分度高的列作为索引</strong>，区分度的公式是<code>count(distinct col)/count(*)</code>，表示字段不重复的比例，比例越大我们扫描的记录数越少‘<br>    <strong>索引列不能参与计算</strong>。比如<code>from_unixtime(create_time) = ’2014-05-29’</code>就不能使用到索引，原因很简单，b+树中存的都是数据表中的字段值，但进行检索时，需要把所有元素都应用函数才能比较，显然成本太大。所以语句应该写成create_time = unix_timestamp(’2014-05-29’)</p>
+<h2 id="Kafka"><a href="#Kafka" class="headerlink" title="Kafka"></a>Kafka</h2><p>（1）如何获取topic列表？<br>bin/kafka-topics.sh —list —zookeeper localhost:2181</p>
+<p>（2）Zookeeper 对于 Kafka 的作用是什么？<br>Zookeeper是一个分布式协调服务，用于集群中不同节点的通信。<br>在kafka中，它被用于提交偏移量， leader 检测、分布式同步、配置管理等</p>
+<p>（3）数据传输的事务定义为哪三种？<br>和 MQTT 的事务定义一样都是 3 种。<br>    最多一次: 消息不会被重复发送，最多被传输一次，但也有可能一次不传输<br>    最少一次: 消息不会被漏发送，最少被传输一次，但也有可能被重复传输.<br>    精确的一次（Exactly once）: 不会漏传输也不会重复传输,每个消息都传输被一次而且仅仅被传输一次，这是大家所期望的</p>
+<p>（4） Kafka 如何判断一个节点是否还活着<br>Zookeeper心跳检测</p>
+<p>（5）为什么使用kafka而不是MQ？<br>    Kafka 持久化日志，这些日志可以被重复读取和无限期保留<br>    Kafka 是一个分布式系统：它以集群的方式运行，可以灵活伸缩，在内部通过复制数据提升容错能力和高可用性<br>    Kafka 支持实时的流式处理<br>Kafka总的来说有极致的性能和良好的生态（例如hadoop，流处理系统等）。</p>
+<p>（6）Kafka的ack的三种机制？<br>    request.required.acks 有三个值 0 1 -1<br>    0表示生产者不会等待 broker 的 ack，这个延迟最低但是存储的保证最弱<br>    1表示服务端会等待 ack 值 leader 副本确认接收到消息后发送 ack<br>    -1(all)表示服务端会等所有的 follower 的副本受到数据后才会受到 leader 发出的ack，这样数据不会丢失</p>
+<p>（7）为什么用kafka？给我讲一讲kafka的结构<br>用处是：异步处理、上下游业务解耦、削峰<br>kafka实现了一个发布订阅模型。一个kafka集群由多个broker组成，每个broker内部有多个topic表示主题，消费者可以订阅主题，消费队列中的消息。每个主题可以分为多个partion分区，分区内部的消息是按顺序的。每个分区都有对应的副本，leader用于平时工作，但是其他follower需要及时从leader获取备份，当leader下线时，需要选举出一个follower变为leader。</p>
+<p>（8）kafka如何保证消息不丢失？<br>生产者丢数据：<br>    通过send+回调的形式，接收send的结果，如果返回错误则重试（默认3次）。<br>消费者丢数据：<br>    基于分区有序性的原理，可以<strong>关闭自动提交 offset，每次在真正消费完消息之后再自己手动提交 offset</strong>（但是可能导致重复消费，需要再通过数据库查询来消除）<br>kafka丢数据：<br>    通过副本来实现高可靠。kafka有一个参数可以设置有多少副本同步更新了数据才算成功发送，一般至少&gt;= 2，这样即使leader挂了，follew仍然还保存着副本</p>
+<p>（9）kafka如何保证消费顺序的？<br>如果要求Topic内有序，那么一个Topic只用一个分区<br>如果只要求业务处理的顺序有序，那么可以建立key到分区的映射关系，保证相同的key映射到同一个分区。（因为Kafka 中发送 1 条消息的时候，可以指定 topic, partition, key,data（数据） 4 个参数。如果你发送消息的时候指定了 Partition 的话，所有消息都会被发送到指定的 Partition）<br><figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs sql">追问：分区内部的有序是如何实现的？<br>答案：消息在被追加到 <span class="hljs-keyword">Partition</span>(分区)的时候都会分配一个特定的偏移量（<span class="hljs-keyword">offset</span>）。偏移量（<span class="hljs-keyword">offset</span>)表示 Consumer 当前消费到的 <span class="hljs-keyword">Partition</span>(分区)的所在的位置。Kafka 通过偏移量（<span class="hljs-keyword">offset</span>）可以保证消息在分区内的顺序性<br></code></pre></td></tr></table></figure></p>
+<p>（10）kafka如何防止重复消费？<br>根本原因：服务端侧已经消费的数据没有成功提交 offset（根本原因）<br>解决方法：<br>    消费消息服务做幂等校验，比如 Redis 的 set、MySQL 的主键等天然的幂等功能。这种方法最有效。<br>    关闭自动提交，开发者在代码中手动提交 offset。当拉取到消息后再提交，但仍有消息丢失的风险，还需要通过定时任务在业务不繁忙（比如凌晨）的时候做数据兜底<br>下游在进行特定处理之后保存到mongo，然后提交offset。每次处理数据前先查询mongo是否命中。<br><figure class="highlight"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs">追问：什么是消息幂等？<br>答案：当出现消费者对某条消息重复消费的情况时，重复消费的结果与消费一次的结果是相同的，并且多次消费并未对业务系统产生任何负面影响<br><br>追问：如何保证幂等？<br>答案：需要结合业务考虑，比如去重表来实现<br></code></pre></td></tr></table></figure></p>
+<p>（11）当出现消费异常时怎么办？<br>在默认配置下，当消费异常会进行重试，重试多次后会跳过当前消息，继续进行后续消息的消费，并将有问题的数据放入死信队列，被开发者进一步分析处理。这个过程可以配置告警函数。</p>
+<p>（12）遇到过kafka消息堆积的情况嘛？怎么处理？<br>因为生产者的问题导致消费不了，那么修改代码<br>因为Kafka的问题、部署集群、高可靠。<br>因为消费者的问题导致堆积：代码没问题，则下游扩容；代码有问题则修改代码，吞吐量太小了就扩展分区。<br>在修改代码时，为了防止业务出问题，需要新开一个topic来暂时保存消费不了的数据避免引起溢出。</p>
 <figure class="highlight"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs">追问：如果积压太严重，以至于磁盘满了怎么办？<br>生产者一般会对传到下游的数据归档，先利用常规的解决积压的方案，对于丢失的数据让生产者重发<br></code></pre></td></tr></table></figure>
-<p>（13）kafka的吞吐量是多少？为什么能有这么大的吞吐量（高性能）？ 单机极限状态2000w条/s，吞吐量每秒600MB 高性能主要因为三个原因： PageCache缓存（操作系统层面，处于文件系统的第二层） Kafka文件布局以及磁盘顺序写入 每一个 <code>topic</code> 可以创建多个分区，每一个分区包含单独的文件夹，<code>Kafka</code> 在分区级别实现文件顺序写 零拷贝Sendfile + DMA：避免重复的数据拷贝和多余的内核用户态切换 批量处理，Kafka 的send() 方法实际是异步批量发送的机制（攒一波一起发）</p>
-<p>（14）如何监控kafka？ github 项目 kafka_exporter，可以无缝衔接Prometheus + Grafana</p>
+<p>（13）kafka的吞吐量是多少？为什么能有这么大的吞吐量（高性能）？<br>单机极限状态2000w条/s，吞吐量每秒600MB<br>高性能主要因为三个原因：<br>    PageCache缓存（操作系统层面，处于文件系统的第二层）<br>    Kafka文件布局以及磁盘顺序写入<br>        每一个 <code>topic</code> 可以创建多个分区，每一个分区包含单独的文件夹，<code>Kafka</code> 在分区级别实现文件顺序写<br>    零拷贝Sendfile + DMA：避免重复的数据拷贝和多余的内核用户态切换<br>    批量处理，Kafka 的send() 方法实际是异步批量发送的机制（攒一波一起发）</p>
+<p>（14）如何监控kafka？<br>github 项目 kafka_exporter，可以无缝衔接Prometheus + Grafana</p>
 <p><a target="_blank" rel="noopener" href="https://developer.aliyun.com/article/740170">18道kafka高频面试题哪些你还不会？（含答案和思维导图）-阿里云开发者社区 (aliyun.com)</a></p>
-<h2 id="go">Go</h2>
-<p>（1）为什么要用协程？ 使用协程是因为相较于多线程，可以节省CPU，避免内核级线程频繁切换，同时节约内存。我看了测试，协程切换的耗时大概是100ns，是线程切换耗时的二十分之一。</p>
-<p>（2）golang是值传递还是引用传递？深拷贝还是浅拷贝 值传递；浅拷贝，copy是深拷贝</p>
-<p>（3）context对象作用 原理 context的作用就是在不同的goroutine之间同步请求特定的数据、取消信号以及处理请求的截止日期。它包含了一系列函数，可以用withvalue传递trace_id，withTimeout或者withDeadline来做超时控制 <figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><code class="hljs go"><span class="hljs-keyword">select</span> &#123;<br>        <span class="hljs-keyword">case</span> &lt;- ctx.Done():<br>            fmt.Println(ctx.Err())<br>            <span class="hljs-keyword">return</span><br>        <span class="hljs-keyword">default</span>:<br>            fmt.Printf(<span class="hljs-string">&quot;deal time is %d\n&quot;</span>, i)<br>        &#125;<br></code></pre></td></tr></table></figure></p>
-<p>（4）Go的锁机制？ sync包提供了Mutex互斥锁和RWMutex读写锁</p>
-<p>（5）go的panic和recovery是怎么用的，怎么实现的？ panic 用于主动抛出错误，recover 用来捕获 panic 抛出的错误 引发<code>panic</code>有两种情况，一是程序主动调用，二是程序产生运行时错误，由运行时检测并退出</p>
+<h2 id="Go"><a href="#Go" class="headerlink" title="Go"></a>Go</h2><p>（1）为什么要用协程？<br>使用协程是因为相较于多线程，可以节省CPU，避免内核级线程频繁切换，同时节约内存。我看了测试，协程切换的耗时大概是100ns，是线程切换耗时的二十分之一。</p>
+<p>（2）golang是值传递还是引用传递？深拷贝还是浅拷贝<br>值传递；浅拷贝，copy是深拷贝</p>
+<p>（3）context对象作用 原理<br>context的作用就是在不同的goroutine之间同步请求特定的数据、取消信号以及处理请求的截止日期。它包含了一系列函数，可以用withvalue传递trace_id，withTimeout或者withDeadline来做超时控制<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><code class="hljs go"><span class="hljs-keyword">select</span> &#123;<br>        <span class="hljs-keyword">case</span> &lt;- ctx.Done():<br>            fmt.Println(ctx.Err())<br>            <span class="hljs-keyword">return</span><br>        <span class="hljs-keyword">default</span>:<br>            fmt.Printf(<span class="hljs-string">&quot;deal time is %d\n&quot;</span>, i)<br>        &#125;<br></code></pre></td></tr></table></figure></p>
+<p>（4）Go的锁机制？<br>sync包提供了Mutex互斥锁和RWMutex读写锁</p>
+<p>（5）go的panic和recovery是怎么用的，怎么实现的？<br>panic 用于主动抛出错误，recover 用来捕获 panic 抛出的错误<br>引发<code>panic</code>有两种情况，一是程序主动调用，二是程序产生运行时错误，由运行时检测并退出</p>
 <p>（6）slice、map的原理</p>
-<p>（7）interface的实现 包含两个指针，一个指针指向类型，一个unsafe指针指向值，因此nil通过空接口形参复制就不再是nil了</p>
-<p>（8）channel的原理？能否close？ 可以close，channel涉及到优雅关闭的问题： 在golang中，关闭或者向已关闭的channel发送数据都会引发panic 不要在接受一端关闭channel 不要在有多个并发的senders中关闭channel。反过来说，如果只有一个协程充当sender，那么我们可以在这个sender协程内关闭掉channel</p>
-<p>（9）select 的原理 select只能接收channel，有dafault不阻塞，否则没有操作就阻塞</p>
-<p>（10）go如何实现面向对象？ 面向对象 = 封装 + 继承 + 多态 封装：小写私有字段、大写共有字段 继承：结构体嵌套，子结构体可以访问父结构体中的所有属性和方法 多态：在 Go 语言中，多态可以通过接口来实现。如果一个类型实现了某个接口的所有方法，那么该类型就是该接口类型，可以赋值给该接口类型的变量</p>
-<p>（11）go的空接口和nil？ Go 语言中有两种略微不同的接口，一种是带有一组方法的接口，另一种是不带任何方法的空接口 interface{}。Go 语言使用<code>runtime.iface</code>表示带方法的接口，使用<code>runtime.eface</code>表示不带任何方法的空接口<code>interface&#123;&#125;</code> 一个 interface{} 类型的变量包含了 2 个指针，一个指针指向值的类型，另外一个指针指向实际的值 <figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs go"><span class="hljs-keyword">type</span> eface <span class="hljs-keyword">struct</span> &#123; <br>	<span class="hljs-comment">// 16 字节 </span><br>	_type *_type data <br>	unsafe.Pointer <br>&#125;<br></code></pre></td></tr></table></figure> <strong>当一个空接口变量为 nil 时，需要其两个指针均为 0 才行</strong> <strong>空切片为 nil 因为其值为零值，类型为 []string 的空切片传给空接口后，因为空接口的值并不是零值，所以接口变量不是 nil</strong> 切记，Go 中变量是否为 nil 要看变量的值是否是零值。 切记，不要将值为 nil 的变量赋给空接口。</p>
-<h2 id="k8s">K8S</h2>
-<p>（1）什么是k8s？ k8s是一个开源容器编排平台，可以理解为服务与服务器之间的中间价，实现容器化应用的自动部署，管理、扩展、负载均衡。整个架构分为control和node两个部分。 control节点的具体组件包括用来操作服务资源的API server，用来保存k8s数据的etcd，决定pod调度的scheduler，执行调度的Contorller manager。Node节点包括容器运行时组件Container runtime,用来接收Controller manager指令的kubelet，负责node网络通信的kube proxy和一系列pod。每个pod除了包括业务容器，还包括了搭配的日志收集器等容器，是k8s调度的基本单位</p>
+<p>（7）interface的实现<br>包含两个指针，一个指针指向类型，一个unsafe指针指向值，因此nil通过空接口形参复制就不再是nil了</p>
+<p>（8）channel的原理？能否close？<br>可以close，channel涉及到优雅关闭的问题：<br>    在golang中，关闭或者向已关闭的channel发送数据都会引发panic<br>    不要在接受一端关闭channel<br>    不要在有多个并发的senders中关闭channel。反过来说，如果只有一个协程充当sender，那么我们可以在这个sender协程内关闭掉channel</p>
+<p>（9）select 的原理<br>select只能接收channel，有dafault不阻塞，否则没有操作就阻塞</p>
+<p>（10）go如何实现面向对象？<br>面向对象 = 封装 + 继承 + 多态<br>封装：小写私有字段、大写共有字段<br>继承：结构体嵌套，子结构体可以访问父结构体中的所有属性和方法<br>多态：在 Go 语言中，多态可以通过接口来实现。如果一个类型实现了某个接口的所有方法，那么该类型就是该接口类型，可以赋值给该接口类型的变量</p>
+<p>（11）go的空接口和nil？<br>Go 语言中有两种略微不同的接口，一种是带有一组方法的接口，另一种是不带任何方法的空接口 interface{}。Go 语言使用<code>runtime.iface</code>表示带方法的接口，使用<code>runtime.eface</code>表示不带任何方法的空接口<code>interface&#123;&#125;</code><br>一个 interface{} 类型的变量包含了 2 个指针，一个指针指向值的类型，另外一个指针指向实际的值<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs go"><span class="hljs-keyword">type</span> eface <span class="hljs-keyword">struct</span> &#123; <br>	<span class="hljs-comment">// 16 字节 </span><br>	_type *_type data <br>	unsafe.Pointer <br>&#125;<br></code></pre></td></tr></table></figure><br><strong>当一个空接口变量为 nil 时，需要其两个指针均为 0 才行</strong><br><strong>空切片为 nil 因为其值为零值，类型为 []string 的空切片传给空接口后，因为空接口的值并不是零值，所以接口变量不是 nil</strong><br>切记，Go 中变量是否为 nil 要看变量的值是否是零值。<br>切记，不要将值为 nil 的变量赋给空接口。</p>
+<h2 id="K8S"><a href="#K8S" class="headerlink" title="K8S"></a>K8S</h2><p>（1）什么是k8s？<br>k8s是一个开源容器编排平台，可以理解为服务与服务器之间的中间价，实现容器化应用的自动部署，管理、扩展、负载均衡。整个架构分为control和node两个部分。<br>control节点的具体组件包括用来操作服务资源的API server，用来保存k8s数据的etcd，决定pod调度的scheduler，执行调度的Contorller manager。Node节点包括容器运行时组件Container runtime,用来接收Controller manager指令的kubelet，负责node网络通信的kube proxy和一系列pod。每个pod除了包括业务容器，还包括了搭配的日志收集器等容器，是k8s调度的基本单位</p>
 <p>总之，k8s本质就是服务和服务器之间的中间层，通过暴露一系列API能力，简化服务的部署和运维流程。</p>
-<p>（2）如何使用k8s？（如何部署服务？） 编写yaml文件，指定镜像和需要的系统资源。然后执行，kubectl apply -f xxx.yaml。kubectl将读取和解析yaml文件，通过http请求发送给API Server，它根据要求驱使Controller manager创建pod，scheduler寻找合适的node并调度pod。某node中的kubelet收到命令后会根据container runner拉取镜像，创建pod的containe，之后会定期检查容器的状态，如果容器失败或被终止，Kubelet 会将容器的状态更新到 Kubernetes API Server 中。</p>
-<p>（3）如何访问服务？ 外部请求先到达k8s集群的ingress，然后被转发到某个node的 kube proxy，找到对应pod进行处理。</p>
-<p>（4）什么是service？ Service 是对一组提供相同功能的 Pods 的抽象，并为它们提供一个统一的入口。借助 Service，应用可以方便的实现服务发现与负载均衡</p>
-<p>（5）什么是Deployment? Deployment 为 Pod 和 Replica Set提供声明式更新，只需要在 Deployment 中描述你想要的目标状态是什么，Deployment controller 就会帮你将 Pod 和 Replica Set 的实际状态改变到你的目标状态，常用于扩容缩容。</p>
-<p>（6）创建pod的流程？ 1. Kubernetes API Server 创建 Pod Spec，并将其存储在 etcd 中。 2. Kubernetes Controller Manager 根据 Pod Spec 创建 Pod，并将其存储在 etcd 中。 3. Kubernetes API Server 为 Pod 分配 IP 地址，并将其存储在 etcd 中。 4. Kubernetes Scheduler 根据 Pod 的资源需求和节点资源状况，将 Pod 调度到一个合适的节点上，并将调度信息存储在 etcd 中。 5. Kubernetes Kubelet 在节点上根据container runner创建容器，并将容器状态更新到 Kubernetes API Server 中。 6. Kubernetes Kubelet 定期检查容器状态，并根据需要重启容器。</p>
-<p>（7）pod之间如何通信？ 利用网桥，eth0，veth技术</p>
-<p>（8）container如何通信？ IP一致，有相同的网络命名空间</p>
-<h2 id="zookeeper">Zookeeper</h2>
-<p>（1）Zookeeper是什么？ ZooKeeper 是一个开源的<strong>分布式协调服务</strong>，它的设计目标是将那些复杂且容易出错的分布式一致性服务封装起来，构成一个高效可靠的原语集，并以一系列简单易用的接口提供给用户使用。</p>
+<p>（2）如何使用k8s？（如何部署服务？）<br>编写yaml文件，指定镜像和需要的系统资源。然后执行，kubectl apply -f xxx.yaml。kubectl将读取和解析yaml文件，通过http请求发送给API Server，它根据要求驱使Controller manager创建pod，scheduler寻找合适的node并调度pod。某node中的kubelet收到命令后会根据container runner拉取镜像，创建pod的containe，之后会定期检查容器的状态，如果容器失败或被终止，Kubelet 会将容器的状态更新到 Kubernetes API Server 中。</p>
+<p>（3）如何访问服务？<br>外部请求先到达k8s集群的ingress，然后被转发到某个node的<br>kube proxy，找到对应pod进行处理。</p>
+<p>（4）什么是service？<br>Service 是对一组提供相同功能的 Pods 的抽象，并为它们提供一个统一的入口。借助 Service，应用可以方便的实现服务发现与负载均衡</p>
+<p>（5）什么是Deployment?<br>Deployment 为 Pod 和 Replica Set提供声明式更新，只需要在 Deployment 中描述你想要的目标状态是什么，Deployment controller 就会帮你将 Pod 和 Replica Set 的实际状态改变到你的目标状态，常用于扩容缩容。</p>
+<p>（6）创建pod的流程？</p>
+<ol>
+<li>Kubernetes API Server 创建 Pod Spec，并将其存储在 etcd 中。</li>
+<li>Kubernetes Controller Manager 根据 Pod Spec 创建 Pod，并将其存储在 etcd 中。</li>
+<li>Kubernetes API Server 为 Pod 分配 IP 地址，并将其存储在 etcd 中。</li>
+<li>Kubernetes Scheduler 根据 Pod 的资源需求和节点资源状况，将 Pod 调度到一个合适的节点上，并将调度信息存储在 etcd 中。</li>
+<li>Kubernetes Kubelet 在节点上根据container runner创建容器，并将容器状态更新到 Kubernetes API Server 中。</li>
+<li>Kubernetes Kubelet 定期检查容器状态，并根据需要重启容器。</li>
+</ol>
+<p>（7）pod之间如何通信？<br>利用网桥，eth0，veth技术</p>
+<p>（8）container如何通信？<br>IP一致，有相同的网络命名空间</p>
+<h2 id="Zookeeper"><a href="#Zookeeper" class="headerlink" title="Zookeeper"></a>Zookeeper</h2><p>（1）Zookeeper是什么？<br>ZooKeeper 是一个开源的<strong>分布式协调服务</strong>，它的设计目标是将那些复杂且容易出错的分布式一致性服务封装起来，构成一个高效可靠的原语集，并以一系列简单易用的接口提供给用户使用。</p>
 <p>ZooKeeper 为我们提供了高可用、高性能、稳定的分布式数据一致性解决方案，通常被用于实现诸如数据发布/订阅、负载均衡、命名服务、分布式协调/通知、集群管理、Master 选举、分布式锁和分布式队列等功能。这些功能的实现主要依赖于 ZooKeeper 提供的 <strong>数据存储+事件监听</strong> 功能</p>
 <p>（2）</p>
-<h2 id="分布式">分布式</h2>
-<h3 id="高可靠">高可靠</h3>
-<p>（1）如何容灾？ 容灾是为了在遭遇灾害时能保证信息系统能正常运行，遵循两地三中心原则 两地是指<strong>同城、异地</strong> 三中心是指<strong>生产中心、同城容灾中心、异地容灾中心</strong>。 同城：在同城或相近区域内 （ ≤ <strong>200KM</strong> ）建立两个数据中心 : 日常情况下可同时分担业务及管理系统的运行，并可切换运行。 异地：在距离较远的地方采用异步镜像的方式保存数据，防范战争、地震、水灾等风险 三中心是指，生产中心负责日常的请求处理，数据远程复制到同城容灾中心，同成容灾中心的数据异步远程复制到异地容灾中心</p>
-<h2 id="实践经历">实践经历</h2>
-<h3 id="项目">项目</h3>
-<p>（1）系统监控Alarm是如何实现的？ 每个进程使用CPU以CPU时间片为单位，如果想要对进程的一部分代码段进行监控，可以用两个系统调用来实现，它涉及到的主要是中断相关的知识。 一个系统调用是<strong>sigalarm</strong>用来完成具体的逻辑，第一个参数用来设置时钟中断的次数，第二个参数是到达次数后回调的处理函数。它的具体逻辑是给进程控制块添加三个新的变量和一个新结构体并初始化，分别表示进程已经中断的次数，中断次数的阈值，处理函数的地址。随后在时钟中断的处理函数中添加判断语句，如果进程注册了系统监控，则将计数器加一。当计数器达到阈值，保存当前寄存器的上下文，设置PC寄存器的值为中断处理函数的入口，执行报警操作 第二个系统调用用来返回原本的进程，在处理函数的最后调用。它的作用是将切换PC前保存的上下文再切换回去</p>
-<p>（2）写时复制是如何实现的？ 在原本的xv6中，每一次fork都会给子进程分配物理内存。而大多数情况下fork仅仅是sh窗口用来启动进程的方式，分配的页表会被exec替换掉。引入写时复制可以避免无意义的内存分配，加快进程创建速度，它主要涉及到的是内存管理相关的知识。 fork系统调用为子进程分配物理页是在uvmcopy函数中完成，该函数会遍历父进程的页表，找到对应的物理页，再给子进程分配新物理页，将数据拷贝过去，随后分配虚拟页并建立虚拟页和物理页的映射关系保存在子进程的页表中。 我的修改方式是不再给子进程分配物理页，仅分配虚拟页，然后建立子进程虚拟页到父进程物理页的映射关系，并将这中间过程的PTE设置为只读不可写。这样一旦发生写操作就会触发缺页中断。这种思想其实在到处都有体现，比如redis在主从同步时会fork出子进程来进行数据copy。 当发生缺页中断时，stval寄存器会记录发生错误的地址。此时调用kalloc给子进程分配物理页，并重新建立发生错误的页和新分配物理页的映射关系。 由于这个过程涉及到多个进程映射同一个物理页，因此为了防止某个进程错误的释放了物理页。还需要新增一个全局数组记录整个物理空间每个物理页的引用计数。归还物理空间时如果引用技术不为1，则仅仅减少引用计数即可。该数组在操作时需要上锁。</p>
+<h2 id="分布式"><a href="#分布式" class="headerlink" title="分布式"></a>分布式</h2><h3 id="高可靠"><a href="#高可靠" class="headerlink" title="高可靠"></a>高可靠</h3><p>（1）如何容灾？<br>容灾是为了在遭遇灾害时能保证信息系统能正常运行，遵循两地三中心原则<br>    两地是指<strong>同城、异地</strong><br>    三中心是指<strong>生产中心、同城容灾中心、异地容灾中心</strong>。<br>    同城：在同城或相近区域内 （ ≤ <strong>200KM</strong> ）建立两个数据中心 : 日常情况下可同时分担业务及管理系统的运行，并可切换运行。<br>    异地：在距离较远的地方采用异步镜像的方式保存数据，防范战争、地震、水灾等风险<br>    三中心是指，生产中心负责日常的请求处理，数据远程复制到同城容灾中心，同成容灾中心的数据异步远程复制到异地容灾中心</p>
+<h2 id="实践经历"><a href="#实践经历" class="headerlink" title="实践经历"></a>实践经历</h2><h3 id="项目"><a href="#项目" class="headerlink" title="项目"></a>项目</h3><p>（1）系统监控Alarm是如何实现的？<br>每个进程使用CPU以CPU时间片为单位，如果想要对进程的一部分代码段进行监控，可以用两个系统调用来实现，它涉及到的主要是中断相关的知识。<br>一个系统调用是<strong>sigalarm</strong>用来完成具体的逻辑，第一个参数用来设置时钟中断的次数，第二个参数是到达次数后回调的处理函数。它的具体逻辑是给进程控制块添加三个新的变量和一个新结构体并初始化，分别表示进程已经中断的次数，中断次数的阈值，处理函数的地址。随后在时钟中断的处理函数中添加判断语句，如果进程注册了系统监控，则将计数器加一。当计数器达到阈值，保存当前寄存器的上下文，设置PC寄存器的值为中断处理函数的入口，执行报警操作<br>第二个系统调用用来返回原本的进程，在处理函数的最后调用。它的作用是将切换PC前保存的上下文再切换回去</p>
+<p>（2）写时复制是如何实现的？<br>在原本的xv6中，每一次fork都会给子进程分配物理内存。而大多数情况下fork仅仅是sh窗口用来启动进程的方式，分配的页表会被exec替换掉。引入写时复制可以避免无意义的内存分配，加快进程创建速度，它主要涉及到的是内存管理相关的知识。<br>fork系统调用为子进程分配物理页是在uvmcopy函数中完成，该函数会遍历父进程的页表，找到对应的物理页，再给子进程分配新物理页，将数据拷贝过去，随后分配虚拟页并建立虚拟页和物理页的映射关系保存在子进程的页表中。<br>我的修改方式是不再给子进程分配物理页，仅分配虚拟页，然后建立子进程虚拟页到父进程物理页的映射关系，并将这中间过程的PTE设置为只读不可写。这样一旦发生写操作就会触发缺页中断。这种思想其实在到处都有体现，比如redis在主从同步时会fork出子进程来进行数据copy。<br>当发生缺页中断时，stval寄存器会记录发生错误的地址。此时调用kalloc给子进程分配物理页，并重新建立发生错误的页和新分配物理页的映射关系。<br>由于这个过程涉及到多个进程映射同一个物理页，因此为了防止某个进程错误的释放了物理页。还需要新增一个全局数组记录整个物理空间每个物理页的引用计数。归还物理空间时如果引用技术不为1，则仅仅减少引用计数即可。该数组在操作时需要上锁。</p>
 <p>在写代码过程中最大的困难是，在分配内存时有一段逻辑是如果当前页面的引用数不为0则报错，否则置为1然后分配出去。由于这个读取在逻辑上是一个前后串行的关系，就觉得不需要再上锁了，结果由于编译器优化，导致内存分配失败。实际的执行顺序与逻辑执行顺序不一致，引用计数赋值为1在前，不为0则报错在后。进一步让我意识到了并发问题的两个核心原因：编译器优化导致的乱序执行以及MSEI协议的优化导致CPU缓存不一致。</p>
-<p>（3）如何实现内存分配的锁分段优化？ xv6最初的内存分配是由一个全局空闲链表维护的，多个CPU并发分配内存需要涉及到锁争夺，因此可以基于锁分段的思想，将大的空闲链表拆分为每个CPU自己维护的小空闲链表，这几个链表放在一个结构体数组中维护，数组下标就是CPUid。之后只需要修改kinit，kalloc，kfree三个函数即可。kinit会在操作系统启动时将内存初始化并切割成页串成空闲链表。kalloc会获取CPUid，然后找到自己的小链表，上锁并分配内存，如果链表为空，则释放锁，然后去其他空闲链表中上锁并偷取一个。kfree则在释放时CPU将内存页放在自己的空闲链表中即可</p>
+<p>（3）如何实现内存分配的锁分段优化？<br>xv6最初的内存分配是由一个全局空闲链表维护的，多个CPU并发分配内存需要涉及到锁争夺，因此可以基于锁分段的思想，将大的空闲链表拆分为每个CPU自己维护的小空闲链表，这几个链表放在一个结构体数组中维护，数组下标就是CPUid。之后只需要修改kinit，kalloc，kfree三个函数即可。kinit会在操作系统启动时将内存初始化并切割成页串成空闲链表。kalloc会获取CPUid，然后找到自己的小链表，上锁并分配内存，如果链表为空，则释放锁，然后去其他空闲链表中上锁并偷取一个。kfree则在释放时CPU将内存页放在自己的空闲链表中即可</p>
 <p>这个内容其实难点在于实现内存页的偷取，这个过程和GMP有点相似，因此其实我的这种方法还是存在优化空间的。例如可以引入全局队列，通过机制保证各个空闲链表之间的大小均衡。</p>
-<p>（4）如何实现软连接功能？ 软链接可以简单理解为快捷方式，它的作用是间接指向一个文件或目录。实现软链接主要涉及到的是文件系统相关的知识。 文件系统总共分为七层。驱动层、buffer cache层，log层、inode层、目录层、路径层和文件层。由于linux万物皆文件的特性，其实所有文件背后都是inode结构体，该结构体包含了一个变量来表示该inode的类型，例如是目录、普通文件还是设备。 实现软链接其实就是新增一种新的inode类型，并在create和open中添加配套的if处理语句。sys_symlink需要接收两个参数，已经存在的文件名和新创建的软链接文件名。利用路径层提供的接口，将文件名转化为文件路径。随后调用文件层的create函数传入文件路径和软链接标志作为参数创建一个新的inode节点。该inode和其他普通inode拥有相同的结构体，只不过类型为软链接类型，addr中保存的是链接文件inode的路径。在open时如果发现文件对应的inode是软链接类型，则递归查找</p>
+<p>（4）如何实现软连接功能？<br>软链接可以简单理解为快捷方式，它的作用是间接指向一个文件或目录。实现软链接主要涉及到的是文件系统相关的知识。<br>文件系统总共分为七层。驱动层、buffer cache层，log层、inode层、目录层、路径层和文件层。由于linux万物皆文件的特性，其实所有文件背后都是inode结构体，该结构体包含了一个变量来表示该inode的类型，例如是目录、普通文件还是设备。<br>实现软链接其实就是新增一种新的inode类型，并在create和open中添加配套的if处理语句。sys_symlink需要接收两个参数，已经存在的文件名和新创建的软链接文件名。利用路径层提供的接口，将文件名转化为文件路径。随后调用文件层的create函数传入文件路径和软链接标志作为参数创建一个新的inode节点。该inode和其他普通inode拥有相同的结构体，只不过类型为软链接类型，addr中保存的是链接文件inode的路径。在open时如果发现文件对应的inode是软链接类型，则递归查找</p>
 <p>难点在于理清楚不同文件系统层之间的关系</p>
-<p>（5）如何实现mmap？ 正常情况下写文件，需要复制到进程的空间中再进行修改，完成后再copy回去。这个过程涉及到两次数据copy，效率低。mmap是一种优化手段，通过建立虚拟地址与文件描述符的映射关系，避免数据copy。 mmap是一个系统调用，参数包括了映射的虚拟地址和长度，文件号和偏移量、映射权限。新建一个数据结构vma是用来保存这些参数。通过在进程控制块中添加一个vma数组，表示一系列的映射，添加一个maxaddr表示映射的起始地址（linux的内存顺序是堆、内存映射、栈，但是在xv6中，位置是内存映射、堆、栈）。在当调用mmap时，从获取当前的进程的结构体，在vma数组中找到一个空闲vma，寄存器获取参数并进行检查后对该vma赋值，并增加一次文件的引用数。这样映射关系就建立好了。 当访问建立映射的虚拟地址时，会触发13或15号缺页中断，此时通过stval寄存器取出报错的虚拟地址，遍历进程的vma数组，找到对应的vma，获取文件描述符，分配物理内存页，利用文件系统提供的readi接口将文件内容读取到该物理地址，并调用内存管理系统提供的接口建立虚拟地址和物理地址的映射关系。 最后再进行善后工作，例如在fork中添加额外的vma拷贝的代码段。</p>
+<p>（5）如何实现mmap？<br>正常情况下写文件，需要复制到进程的空间中再进行修改，完成后再copy回去。这个过程涉及到两次数据copy，效率低。mmap是一种优化手段，通过建立虚拟地址与文件描述符的映射关系，避免数据copy。<br>mmap是一个系统调用，参数包括了映射的虚拟地址和长度，文件号和偏移量、映射权限。新建一个数据结构vma是用来保存这些参数。通过在进程控制块中添加一个vma数组，表示一系列的映射，添加一个maxaddr表示映射的起始地址（linux的内存顺序是堆、内存映射、栈，但是在xv6中，位置是内存映射、堆、栈）。在当调用mmap时，从获取当前的进程的结构体，在vma数组中找到一个空闲vma，寄存器获取参数并进行检查后对该vma赋值，并增加一次文件的引用数。这样映射关系就建立好了。<br>当访问建立映射的虚拟地址时，会触发13或15号缺页中断，此时通过stval寄存器取出报错的虚拟地址，遍历进程的vma数组，找到对应的vma，获取文件描述符，分配物理内存页，利用文件系统提供的readi接口将文件内容读取到该物理地址，并调用内存管理系统提供的接口建立虚拟地址和物理地址的映射关系。<br>最后再进行善后工作，例如在fork中添加额外的vma拷贝的代码段。</p>
 <p>难点：难点在于理解文件系统和虚拟映射。mmap本身是很多后端技术的技术，linux的mmap涉及到了很多的优化方案，我这里的实现比较简陋。</p>
-<h3 id="实习">实习</h3>
-<p>（1）有这么多字段，要写很多if else吗？有什么解决方案？ 策略模式+责任链模式</p>
-<h2 id="java">java</h2>
-<h3 id="基础知识">基础知识</h3>
-<p>（1）Jvm是运行 Java 字节码的虚拟机，JVM 有针对不同系统的特定实现，目的是使用相同的字节码，给出相同的结果，实现一次编译，随处可以运行</p>
+<h3 id="实习"><a href="#实习" class="headerlink" title="实习"></a>实习</h3><p>（1）有这么多字段，要写很多if else吗？有什么解决方案？<br>策略模式+责任链模式</p>
+<h2 id="java"><a href="#java" class="headerlink" title="java"></a>java</h2><h3 id="基础知识"><a href="#基础知识" class="headerlink" title="基础知识"></a>基础知识</h3><p>（1）Jvm是运行 Java 字节码的虚拟机，JVM 有针对不同系统的特定实现，目的是使用相同的字节码，给出相同的结果，实现一次编译，随处可以运行</p>
 <p>（2）JDK是功能齐全的 Java SDK，是提供给开发者使用，能够创建和编译 Java 程序的开发套件。它包含了 JRE，同时还包含了编译 java 源码的编译器 javac 以及一些其他工具比如 javadoc（文档注释工具）、jdb（调试器）、jconsole（基于 JMX 的可视化监控⼯具）、javap（反编译工具）等等</p>
 <p>（3）</p>
-<h2 id="c">C++</h2>
-<p>（1）如何实现多态？ 使用虚函数，具体的原理是虚函数表。基类包含虚函数时会初始化一个虚函数表，按顺序存放虚函数的地址。当一个派生类重写了该虚函数，就使用重现后函数的指针覆盖虚函数表中对应位置。这样在调用函数时，程序会从虚函数表中找到虚函数真正的实现。</p>
-<p>（2）malloc和new的区别？ malloc只是单纯的分配内存，不用指定对象，只需要指定大小，使用时需要类型转换，分配空间不存在调用构造函数 new是基于malloc实现，不需要指定分配空间的大小，返回值为对应类型指针，会调用构造函数。</p>
-<p>（3）指针和引用的区别？ 指针是一个变量，存储的是一个地址。引用是变量的别名，根原来的变量是同一种东西，因此创建时必须初始化。两者的sizeof大小也不同（例如int指针8字节，int类型引用和int一样4个字节）。</p>
+<h2 id="C"><a href="#C" class="headerlink" title="C++"></a>C++</h2><p>（1）如何实现多态？<br>使用虚函数，具体的原理是虚函数表。基类包含虚函数时会初始化一个虚函数表，按顺序存放虚函数的地址。当一个派生类重写了该虚函数，就使用重现后函数的指针覆盖虚函数表中对应位置。这样在调用函数时，程序会从虚函数表中找到虚函数真正的实现。</p>
+<p>（2）malloc和new的区别？<br>malloc只是单纯的分配内存，不用指定对象，只需要指定大小，使用时需要类型转换，分配空间不存在调用构造函数<br>new是基于malloc实现，不需要指定分配空间的大小，返回值为对应类型指针，会调用构造函数。</p>
+<p>（3）指针和引用的区别？<br>指针是一个变量，存储的是一个地址。引用是变量的别名，根原来的变量是同一种东西，因此创建时必须初始化。两者的sizeof大小也不同（例如int指针8字节，int类型引用和int一样4个字节）。</p>
 
                 
               </div>
